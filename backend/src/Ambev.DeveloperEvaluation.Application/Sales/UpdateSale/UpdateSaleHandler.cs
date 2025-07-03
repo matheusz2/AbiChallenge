@@ -47,13 +47,45 @@ public class UpdateSaleHandler : IRequestHandler<UpdateSaleCommand, UpdateSaleRe
         if (existingSale == null)
             throw new InvalidOperationException($"Sale with ID {command.Id} not found");
 
-        _mapper.Map(command, existingSale);
-        
+        // Atualize campos simples
+        existingSale.CustomerId = command.CustomerId;
+        existingSale.BranchId = command.BranchId;
+
+        // Atualize a coleção de itens
+        // Remover itens que não estão mais na lista
+        existingSale.Items.RemoveAll(item => !command.Items.Any(ci => ci.Id == item.Id));
+
+        // Atualizar ou adicionar itens
+        foreach (var itemCommand in command.Items)
+        {
+            var existingItem = existingSale.Items.FirstOrDefault(i => i.Id == itemCommand.Id);
+            if (existingItem != null)
+            {
+                // Atualizar campos do item existente
+                existingItem.ProductId = itemCommand.ProductId;
+                existingItem.Quantity = itemCommand.Quantity;
+                existingItem.UnitPrice = itemCommand.UnitPrice;
+                // Atualize outros campos se necessário
+            }
+            else
+            {
+                // Adicionar novo item
+                existingSale.Items.Add(new SaleItem
+                {
+                    ProductId = itemCommand.ProductId,
+                    Quantity = itemCommand.Quantity,
+                    UnitPrice = itemCommand.UnitPrice,
+                    CreatedAt = DateTime.UtcNow
+                    // Adicione outros campos se necessário
+                });
+            }
+        }
+
         await _saleService.ApplyBusinessRulesAsync(existingSale, cancellationToken);
-        
-        var updatedSale = await _saleRepository.UpdateAsync(existingSale, cancellationToken);
-        var result = _mapper.Map<UpdateSaleResult>(updatedSale);
-        
+
+        await _saleRepository.UpdateAsync(existingSale, cancellationToken);
+        var result = _mapper.Map<UpdateSaleResult>(existingSale);
+
         return result;
     }
 } 
