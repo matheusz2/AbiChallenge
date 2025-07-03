@@ -1,34 +1,21 @@
-﻿using Ambev.DeveloperEvaluation.Domain.Enums;
-using Ambev.DeveloperEvaluation.Domain.Validation;
 using FluentValidation;
 
-namespace Ambev.DeveloperEvaluation.Application.Users.CreateUser;
+namespace Ambev.DeveloperEvaluation.Application.Users.UpdateUser;
 
 /// <summary>
-/// Validator for CreateUserCommand that defines validation rules for user creation command.
+/// Validator for UpdateUserCommand
 /// </summary>
-public class CreateUserValidator : AbstractValidator<CreateUserCommand>
+public class UpdateUserValidator : AbstractValidator<UpdateUserCommand>
 {
     /// <summary>
-    /// Initializes a new instance of the CreateUserCommandValidator with defined validation rules.
+    /// Initializes validation rules for UpdateUserCommand
     /// </summary>
-    /// <remarks>
-    /// Validation rules include:
-    /// - Email: Must be in valid format (using EmailValidator)
-    /// - Username: Required, must be between 3 and 50 characters
-    /// - Password: Must meet security requirements (using PasswordValidator)
-    /// - Phone: Must match international format (+X XXXXXXXXXX)
-    /// - Status: Cannot be set to Unknown
-    /// - Role: Cannot be set to None
-    /// - Firstname: Required, must be between 1 and 50 characters
-    /// - Lastname: Required, must be between 1 and 50 characters
-    /// - City: Required, must be between 1 and 100 characters
-    /// - Street: Required, must be between 1 and 200 characters
-    /// - Number: Must be greater than 0
-    /// - Zipcode: Required, must be between 5 and 20 characters
-    /// </remarks>
-    public CreateUserValidator()
+    public UpdateUserValidator()
     {
+        RuleFor(x => x.Id)
+            .NotEmpty()
+            .WithMessage("User ID is required");
+
         RuleFor(x => x.Email)
             .NotEmpty()
             .WithMessage("Email is required")
@@ -40,20 +27,6 @@ public class CreateUserValidator : AbstractValidator<CreateUserCommand>
             .WithMessage("Username is required")
             .Length(3, 50)
             .WithMessage("Username must be between 3 and 50 characters");
-
-        RuleFor(x => x.Password)
-            .NotEmpty()
-            .WithMessage("Password is required")
-            .MinimumLength(8)
-            .WithMessage("Password must be at least 8 characters long")
-            .Matches(@"[A-Z]")
-            .WithMessage("Password must contain at least one uppercase letter")
-            .Matches(@"[a-z]")
-            .WithMessage("Password must contain at least one lowercase letter")
-            .Matches(@"\d")
-            .WithMessage("Password must contain at least one number")
-            .Matches(@"[\W_]")
-            .WithMessage("Password must contain at least one special character");
 
         RuleFor(x => x.Firstname)
             .NotEmpty()
@@ -102,5 +75,20 @@ public class CreateUserValidator : AbstractValidator<CreateUserCommand>
         RuleFor(x => x.Role)
             .IsInEnum()
             .WithMessage("Invalid role value");
+
+        // Password validation only if provided
+        When(x => !string.IsNullOrWhiteSpace(x.Password), () => {
+            RuleFor(x => x.Password)
+                .MinimumLength(8)
+                .WithMessage("Password must be at least 8 characters long")
+                .Matches(@"[A-Z]")
+                .WithMessage("Password must contain at least one uppercase letter")
+                .Matches(@"[a-z]")
+                .WithMessage("Password must contain at least one lowercase letter")
+                .Matches(@"\d")
+                .WithMessage("Password must contain at least one number")
+                .Matches(@"[\W_]")
+                .WithMessage("Password must contain at least one special character");
+        });
     }
-}
+} 

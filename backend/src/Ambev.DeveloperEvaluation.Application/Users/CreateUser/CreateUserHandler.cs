@@ -21,8 +21,11 @@ public class CreateUserHandler : IRequestHandler<CreateUserCommand, CreateUserRe
     /// </summary>
     /// <param name="userRepository">The user repository</param>
     /// <param name="mapper">The AutoMapper instance</param>
-    /// <param name="validator">The validator for CreateUserCommand</param>
-    public CreateUserHandler(IUserRepository userRepository, IMapper mapper, IPasswordHasher passwordHasher)
+    /// <param name="passwordHasher">The password hasher service</param>
+    public CreateUserHandler(
+        IUserRepository userRepository,
+        IMapper mapper,
+        IPasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
         _mapper = mapper;
@@ -37,21 +40,50 @@ public class CreateUserHandler : IRequestHandler<CreateUserCommand, CreateUserRe
     /// <returns>The created user details</returns>
     public async Task<CreateUserResult> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
-        var validator = new CreateUserCommandValidator();
+        var validator = new CreateUserValidator();
         var validationResult = await validator.ValidateAsync(command, cancellationToken);
 
         if (!validationResult.IsValid)
             throw new ValidationException(validationResult.Errors);
 
-        var existingUser = await _userRepository.GetByEmailAsync(command.Email, cancellationToken);
-        if (existingUser != null)
+        // Check if email already exists
+        var existingUserByEmail = await _userRepository.GetByEmailAsync(command.Email, cancellationToken);
+        if (existingUserByEmail != null)
             throw new InvalidOperationException($"User with email {command.Email} already exists");
 
-        var user = _mapper.Map<User>(command);
-        user.Password = _passwordHasher.HashPassword(command.Password);
+        // Check if username already exists
+        var existingUserByUsername = await _userRepository.GetByUsernameAsync(command.Username, cancellationToken);
+        if (existingUserByUsername != null)
+            throw new InvalidOperationException($"User with username {command.Username} already exists");
+
+        var user = new User
+        {
+            Username = command.Username,
+            Email = command.Email,
+            Password = _passwordHasher.HashPassword(command.Password),
+            Phone = command.Phone,
+            Status = command.Status,
+            Role = command.Role,
+            Name = new Name
+            {
+                Firstname = command.Firstname,
+                Lastname = command.Lastname
+            },
+            Address = new Address
+            {
+                City = command.City,
+                Street = command.Street,
+                Number = command.Number,
+                Zipcode = command.Zipcode,
+                Geolocation = new Geolocation
+                {
+                    Lat = command.Lat,
+                    Long = command.Long
+                }
+            }
+        };
 
         var createdUser = await _userRepository.CreateAsync(user, cancellationToken);
-        var result = _mapper.Map<CreateUserResult>(createdUser);
-        return result;
+        return _mapper.Map<CreateUserResult>(createdUser);
     }
 }

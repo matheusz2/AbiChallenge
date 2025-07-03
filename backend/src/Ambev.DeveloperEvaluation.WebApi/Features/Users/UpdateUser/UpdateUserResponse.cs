@@ -1,47 +1,60 @@
-using Ambev.DeveloperEvaluation.Domain.Enums;
-
-namespace Ambev.DeveloperEvaluation.WebApi.Features.Users.CreateUser;
+namespace Ambev.DeveloperEvaluation.WebApi.Features.Users.UpdateUser;
 
 /// <summary>
-/// API response model for CreateUser operation
+/// Response model for UpdateUser operation
 /// </summary>
-public class CreateUserResponse
+public class UpdateUserResponse
 {
     /// <summary>
-    /// The unique identifier of the created user
+    /// User's unique identifier
     /// </summary>
     public Guid Id { get; set; }
 
     /// <summary>
-    /// The user's full name
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The user's email address
+    /// User's email address
     /// </summary>
     public string Email { get; set; } = string.Empty;
 
     /// <summary>
-    /// The user's phone number
+    /// User's username
+    /// </summary>
+    public string Username { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User's password (hashed)
+    /// </summary>
+    public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User's name information
+    /// </summary>
+    public UpdateUserNameResponse Name { get; set; } = new();
+
+    /// <summary>
+    /// User's address information
+    /// </summary>
+    public UpdateUserAddressResponse Address { get; set; } = new();
+
+    /// <summary>
+    /// User's phone number
     /// </summary>
     public string Phone { get; set; } = string.Empty;
 
     /// <summary>
-    /// The user's role in the system
+    /// User's status
     /// </summary>
-    public UserRole Role { get; set; }
+    public string Status { get; set; } = string.Empty;
 
     /// <summary>
-    /// The current status of the user
+    /// User's role
     /// </summary>
-    public UserStatus Status { get; set; }
+    public string Role { get; set; } = string.Empty;
 }
 
 /// <summary>
 /// User name information for response
 /// </summary>
-public class CreateUserNameResponse
+public class UpdateUserNameResponse
 {
     /// <summary>
     /// User's first name
@@ -57,7 +70,7 @@ public class CreateUserNameResponse
 /// <summary>
 /// User address information for response
 /// </summary>
-public class CreateUserAddressResponse
+public class UpdateUserAddressResponse
 {
     /// <summary>
     /// City name
@@ -82,13 +95,13 @@ public class CreateUserAddressResponse
     /// <summary>
     /// Geolocation coordinates
     /// </summary>
-    public CreateUserGeolocationResponse Geolocation { get; set; } = new();
+    public UpdateUserGeolocationResponse Geolocation { get; set; } = new();
 }
 
 /// <summary>
 /// User geolocation information for response
 /// </summary>
-public class CreateUserGeolocationResponse
+public class UpdateUserGeolocationResponse
 {
     /// <summary>
     /// Latitude coordinate
@@ -99,4 +112,4 @@ public class CreateUserGeolocationResponse
     /// Longitude coordinate
     /// </summary>
     public string Long { get; set; } = string.Empty;
-}
+} 

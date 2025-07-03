@@ -1,6 +1,7 @@
 using AutoMapper;
 using MediatR;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Domain.Models;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -20,8 +21,8 @@ public class GetAllProductsHandler : IRequestHandler<GetAllProductsCommand, GetA
 
     public async Task<GetAllProductsResult> Handle(GetAllProductsCommand command, CancellationToken cancellationToken)
     {
-        var products = await _productRepository.GetAllAsync(command.Page, command.PageSize, command.Order, cancellationToken);
-        var totalItems = await GetTotalCountAsync(cancellationToken);
+        var products = await _productRepository.GetAllAsync(command.Page, command.PageSize, command.Order, command.Filter, cancellationToken);
+        var totalItems = await GetTotalCountAsync(command.Filter, cancellationToken);
         var totalPages = (int)System.Math.Ceiling((double)totalItems / command.PageSize);
 
         return new GetAllProductsResult
@@ -33,9 +34,9 @@ public class GetAllProductsHandler : IRequestHandler<GetAllProductsCommand, GetA
         };
     }
 
-    private async Task<int> GetTotalCountAsync(CancellationToken cancellationToken)
+    private async Task<int> GetTotalCountAsync(ProductFilter? filter, CancellationToken cancellationToken)
     {
-        var allProducts = await _productRepository.GetAllAsync(1, int.MaxValue, null, cancellationToken);
+        var allProducts = await _productRepository.GetAllAsync(1, int.MaxValue, null, filter, cancellationToken);
         return allProducts.Count;
     }
 } 

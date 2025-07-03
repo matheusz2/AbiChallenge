@@ -1,9 +1,37 @@
-﻿namespace Ambev.DeveloperEvaluation.Application.Users.CreateUser;
+using System.Collections.Generic;
+
+namespace Ambev.DeveloperEvaluation.Application.Users.GetAllUsers;
 
 /// <summary>
-/// Response model for CreateUser operation
+/// Response model for GetAllUsers operation
 /// </summary>
-public class CreateUserResult
+public class GetAllUsersResult
+{
+    /// <summary>
+    /// The list of users for the current page
+    /// </summary>
+    public List<GetAllUsersItemResult> Data { get; set; } = [];
+
+    /// <summary>
+    /// Total number of users
+    /// </summary>
+    public int TotalItems { get; set; }
+
+    /// <summary>
+    /// Current page number
+    /// </summary>
+    public int CurrentPage { get; set; }
+
+    /// <summary>
+    /// Total number of pages
+    /// </summary>
+    public int TotalPages { get; set; }
+}
+
+/// <summary>
+/// Individual user item in the GetAllUsers response
+/// </summary>
+public class GetAllUsersItemResult
 {
     /// <summary>
     /// User's unique identifier
@@ -28,12 +56,12 @@ public class CreateUserResult
     /// <summary>
     /// User's name information
     /// </summary>
-    public CreateUserNameResult Name { get; set; } = new();
+    public UserNameResult Name { get; set; } = new();
 
     /// <summary>
     /// User's address information
     /// </summary>
-    public CreateUserAddressResult Address { get; set; } = new();
+    public UserAddressResult Address { get; set; } = new();
 
     /// <summary>
     /// User's phone number
@@ -52,9 +80,9 @@ public class CreateUserResult
 }
 
 /// <summary>
-/// User name information for create result
+/// User name information
 /// </summary>
-public class CreateUserNameResult
+public class UserNameResult
 {
     /// <summary>
     /// User's first name
@@ -68,9 +96,9 @@ public class CreateUserNameResult
 }
 
 /// <summary>
-/// User address information for create result
+/// User address information
 /// </summary>
-public class CreateUserAddressResult
+public class UserAddressResult
 {
     /// <summary>
     /// City name
@@ -95,13 +123,13 @@ public class CreateUserAddressResult
     /// <summary>
     /// Geolocation coordinates
     /// </summary>
-    public CreateUserGeolocationResult Geolocation { get; set; } = new();
+    public UserGeolocationResult Geolocation { get; set; } = new();
 }
 
 /// <summary>
-/// User geolocation information for create result
+/// User geolocation information
 /// </summary>
-public class CreateUserGeolocationResult
+public class UserGeolocationResult
 {
     /// <summary>
     /// Latitude coordinate
@@ -112,4 +140,4 @@ public class CreateUserGeolocationResult
     /// Longitude coordinate
     /// </summary>
     public string Long { get; set; } = string.Empty;
-}
+} 

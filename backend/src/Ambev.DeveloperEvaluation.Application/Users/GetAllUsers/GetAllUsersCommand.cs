@@ -1,12 +1,12 @@
 using MediatR;
 using Ambev.DeveloperEvaluation.Domain.Models;
 
-namespace Ambev.DeveloperEvaluation.Application.Products.GetAllProducts;
+namespace Ambev.DeveloperEvaluation.Application.Users.GetAllUsers;
 
 /// <summary>
-/// Command for retrieving all products with pagination, ordering and filtering
+/// Command for retrieving all users with pagination, ordering and filtering
 /// </summary>
-public class GetAllProductsCommand : IRequest<GetAllProductsResult>
+public class GetAllUsersCommand : IRequest<GetAllUsersResult>
 {
     /// <summary>
     /// Page number for pagination (1-based)
@@ -19,12 +19,12 @@ public class GetAllProductsCommand : IRequest<GetAllProductsResult>
     public int PageSize { get; set; } = 10;
 
     /// <summary>
-    /// Optional ordering parameter (e.g., "title asc", "price desc")
+    /// Optional ordering parameter (e.g., "username asc", "email desc")
     /// </summary>
     public string? Order { get; set; }
 
     /// <summary>
-    /// Filter criteria for products
+    /// Filter criteria for users
     /// </summary>
-    public ProductFilter? Filter { get; set; }
+    public UserFilter? Filter { get; set; }
 } 

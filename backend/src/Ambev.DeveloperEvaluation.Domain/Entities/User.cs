@@ -6,6 +6,68 @@ using Ambev.DeveloperEvaluation.Domain.Validation;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
+/// <summary>
+/// Represents a user's name information
+/// </summary>
+public class Name
+{
+    /// <summary>
+    /// Gets or sets the user's first name
+    /// </summary>
+    public string Firstname { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the user's last name
+    /// </summary>
+    public string Lastname { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Represents geolocation coordinates
+/// </summary>
+public class Geolocation
+{
+    /// <summary>
+    /// Gets or sets the latitude coordinate
+    /// </summary>
+    public string Lat { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the longitude coordinate
+    /// </summary>
+    public string Long { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Represents a user's address information
+/// </summary>
+public class Address
+{
+    /// <summary>
+    /// Gets or sets the city name
+    /// </summary>
+    public string City { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the street name
+    /// </summary>
+    public string Street { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the street number
+    /// </summary>
+    public int Number { get; set; }
+
+    /// <summary>
+    /// Gets or sets the zip code
+    /// </summary>
+    public string Zipcode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the geolocation coordinates
+    /// </summary>
+    public Geolocation Geolocation { get; set; } = new();
+}
 
 /// <summary>
 /// Represents a user in the system with authentication and profile information.
@@ -14,8 +76,8 @@ namespace Ambev.DeveloperEvaluation.Domain.Entities;
 public class User : BaseEntity, IUser
 {
     /// <summary>
-    /// Gets the user's full name.
-    /// Must not be null or empty and should contain both first and last names.
+    /// Gets the user's username.
+    /// Must not be null or empty and should be unique.
     /// </summary>
     public string Username { get; set; } = string.Empty;
 
@@ -29,7 +91,7 @@ public class User : BaseEntity, IUser
     /// Gets the user's phone number.
     /// Must be a valid phone number format following the pattern (XX) XXXXX-XXXX.
     /// </summary>
-    public string Phone { get; set; } = string.Empty ;
+    public string Phone { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets the hashed password for authentication.
@@ -39,10 +101,20 @@ public class User : BaseEntity, IUser
     public string Password { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets the user's name information (first name and last name).
+    /// </summary>
+    public Name Name { get; set; } = new();
+
+    /// <summary>
+    /// Gets the user's address information.
+    /// </summary>
+    public Address Address { get; set; } = new();
+
+    /// <summary>
     /// Gets the user's role in the system.
     /// Determines the user's permissions and access levels.
     /// </summary>
-    public UserRole Role { get;     set; }
+    public UserRole Role { get; set; }
 
     /// <summary>
     /// Gets the user's current status.

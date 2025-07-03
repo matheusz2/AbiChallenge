@@ -1,19 +1,19 @@
 using AutoMapper;
-using Ambev.DeveloperEvaluation.Application.Users.CreateUser;
+using Ambev.DeveloperEvaluation.Application.Users.UpdateUser;
 
-namespace Ambev.DeveloperEvaluation.WebApi.Features.Users.CreateUser;
+namespace Ambev.DeveloperEvaluation.WebApi.Features.Users.UpdateUser;
 
 /// <summary>
-/// Profile for mapping CreateUser requests and responses
+/// Profile for mapping UpdateUser requests and responses
 /// </summary>
-public class CreateUserProfile : Profile
+public class UpdateUserProfile : Profile
 {
     /// <summary>
-    /// Initializes the mappings for CreateUser
+    /// Initializes the mappings for UpdateUser
     /// </summary>
-    public CreateUserProfile()
+    public UpdateUserProfile()
     {
-        CreateMap<CreateUserRequest, CreateUserCommand>()
+        CreateMap<UpdateUserRequest, UpdateUserCommand>()
             .ForMember(dest => dest.Firstname, opt => opt.MapFrom(src => src.Name.Firstname))
             .ForMember(dest => dest.Lastname, opt => opt.MapFrom(src => src.Name.Lastname))
             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Address.City))
@@ -23,11 +23,9 @@ public class CreateUserProfile : Profile
             .ForMember(dest => dest.Lat, opt => opt.MapFrom(src => src.Address.Geolocation.Lat))
             .ForMember(dest => dest.Long, opt => opt.MapFrom(src => src.Address.Geolocation.Long));
 
-        CreateMap<CreateUserResult, CreateUserResponse>()
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => $"{src.Name.Firstname} {src.Name.Lastname}".Trim()));
-
-        CreateMap<CreateUserNameResult, CreateUserNameResponse>();
-        CreateMap<CreateUserAddressResult, CreateUserAddressResponse>();
-        CreateMap<CreateUserGeolocationResult, CreateUserGeolocationResponse>();
+        CreateMap<UpdateUserResult, UpdateUserResponse>();
+        CreateMap<UpdateUserNameResult, UpdateUserNameResponse>();
+        CreateMap<UpdateUserAddressResult, UpdateUserAddressResponse>();
+        CreateMap<UpdateUserGeolocationResult, UpdateUserGeolocationResponse>();
     }
-}
+} 

@@ -1,19 +1,18 @@
-﻿using MediatR;
+using MediatR;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 
-namespace Ambev.DeveloperEvaluation.Application.Users.CreateUser;
+namespace Ambev.DeveloperEvaluation.Application.Users.UpdateUser;
 
 /// <summary>
-/// Command for creating a new user
+/// Command for updating an existing user
 /// </summary>
-/// <remarks>
-/// This command is used to capture the required data for creating a user, 
-/// including username, password, phone number, email, status, and role. 
-/// It implements <see cref="IRequest{TResponse}"/> to initiate the request 
-/// that returns a <see cref="CreateUserResult"/>.
-/// </remarks>
-public class CreateUserCommand : IRequest<CreateUserResult>
+public class UpdateUserCommand : IRequest<UpdateUserResult>
 {
+    /// <summary>
+    /// The unique identifier of the user to update
+    /// </summary>
+    public Guid Id { get; set; }
+
     /// <summary>
     /// User's email address
     /// </summary>
@@ -83,4 +82,4 @@ public class CreateUserCommand : IRequest<CreateUserResult>
     /// User's role
     /// </summary>
     public UserRole Role { get; set; }
-}
+} 
