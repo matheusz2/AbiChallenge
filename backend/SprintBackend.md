@@ -20,20 +20,18 @@ Implementar o backend em .NET 8 com PostgreSQL, cobrindo CRUD completo para vend
 
 ---
 
-### B1.1 - Modelagem de Domínio
-- Estruturar entidades Sale e SaleItem
-- Configurar o DbContext
-- Mapear relacionamentos
-
----
-
-### B1.2 - CRUD Sales
-- `GET /sales`
-- `GET /sales/{id}`
-- `POST /sales`
-- `PUT /sales/{id}`
-- `DELETE /sales/{id}`
-- Utilizar AutoMapper para DTOs
+### Checklist de Progresso
+- [x] B1.1 - Modelagem de Domínio
+  - [x] Estruturar entidades Sale e SaleItem
+  - [x] Configurar o DbContext
+  - [x] Mapear relacionamentos
+- [x] B1.2 - CRUD Sales
+  - [x] GET /sales
+  - [x] GET /sales/{id}
+  - [x] POST /sales
+  - [x] PUT /sales/{id}
+  - [x] DELETE /sales/{id}
+  - [x] Utilizar AutoMapper para DTOs
 
 ---
 
