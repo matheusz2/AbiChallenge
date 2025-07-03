@@ -73,4 +73,9 @@ public class GetAllSalesItemResult
     /// The date and time when the sale was created
     /// </summary>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>
+    /// The list of items included in the sale
+    /// </summary>
+    public List<Ambev.DeveloperEvaluation.Application.Sales.GetSale.GetSaleItemResult> Items { get; set; } = new();
 } 

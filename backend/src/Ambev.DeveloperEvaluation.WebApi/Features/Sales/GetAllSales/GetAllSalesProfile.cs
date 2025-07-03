@@ -2,6 +2,7 @@ using AutoMapper;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetAllSales;
 using Ambev.DeveloperEvaluation.Application.Sales.GetAllSales;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetSale;
+using Ambev.DeveloperEvaluation.Application.Sales.GetSale;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetAllSales;
 
@@ -16,6 +17,8 @@ public class GetAllSalesProfile : Profile
     public GetAllSalesProfile()
     {
         CreateMap<GetAllSalesRequest, GetAllSalesCommand>();
-        CreateMap<GetAllSalesItemResult, GetSaleResponse>();
+        CreateMap<GetAllSalesItemResult, GetSaleResponse>()
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items));
+        CreateMap<GetSaleItemResult, GetSaleItemResponse>();
     }
 } 

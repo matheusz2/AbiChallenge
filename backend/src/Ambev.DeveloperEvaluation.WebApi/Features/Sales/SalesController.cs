@@ -131,13 +131,12 @@ public class SalesController : BaseController
     /// <param name="request">The sale update request</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated sale details</returns>
-    [HttpPut("{id}")]
+    [HttpPut]
     [ProducesResponseType(typeof(ApiResponseWithData<UpdateSaleResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateSale([FromRoute] Guid id, [FromBody] UpdateSaleRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateSale([FromBody] UpdateSaleRequest request, CancellationToken cancellationToken)
     {
-        request.Id = id; // Ensure the ID from route is set in the request
         var validator = new UpdateSaleRequestValidator();
         var validationResult = await validator.ValidateAsync(request, cancellationToken);
 
