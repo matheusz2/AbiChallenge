@@ -47,12 +47,11 @@ public class UpdateSaleHandler : IRequestHandler<UpdateSaleCommand, UpdateSaleRe
         if (existingSale == null)
             throw new InvalidOperationException($"Sale with ID {command.Id} not found");
 
-        var sale = _mapper.Map<Sale>(command);
+        _mapper.Map(command, existingSale);
         
-        // Apply business rules and recalculate discounts
-        await _saleService.ApplyBusinessRulesAsync(sale, cancellationToken);
+        await _saleService.ApplyBusinessRulesAsync(existingSale, cancellationToken);
         
-        var updatedSale = await _saleRepository.UpdateAsync(sale, cancellationToken);
+        var updatedSale = await _saleRepository.UpdateAsync(existingSale, cancellationToken);
         var result = _mapper.Map<UpdateSaleResult>(updatedSale);
         
         return result;
