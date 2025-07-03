@@ -16,7 +16,9 @@ public class GetAllProductsProfile : Profile
     public GetAllProductsProfile()
     {
         CreateMap<GetAllProductsRequest, GetAllProductsCommand>()
-            .ForMember(dest => dest.PageSize, opt => opt.MapFrom(src => src.Size))
+            .ForMember(dest => dest.Page, opt => opt.MapFrom(src => src._page))
+            .ForMember(dest => dest.PageSize, opt => opt.MapFrom(src => src._size))
+            .ForMember(dest => dest.Order, opt => opt.MapFrom(src => src._order))
             .ForMember(dest => dest.Filter, opt => opt.MapFrom(src => new ProductFilter
             {
                 Title = src.title,

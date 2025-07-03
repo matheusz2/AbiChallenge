@@ -81,9 +81,4 @@ public class GetAllProductsRequest
     /// </summary>
     [Range(0, int.MaxValue, ErrorMessage = "Maximum rating count must be greater than or equal to 0")]
     public int? _maxRatingCount { get; set; }
-
-    // Properties for backward compatibility and mapping
-    public int Page => _page;
-    public int Size => _size;
-    public string? Order => _order;
 } 

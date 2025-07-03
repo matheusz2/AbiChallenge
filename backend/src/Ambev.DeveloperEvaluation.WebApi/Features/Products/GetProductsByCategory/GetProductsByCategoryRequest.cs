@@ -29,8 +29,4 @@ public class GetProductsByCategoryRequest
     /// </summary>
     public string? _order { get; set; }
 
-    // Properties for backward compatibility and mapping
-    public int Page => _page;
-    public int Size => _size;
-    public string? Order => _order;
 } 

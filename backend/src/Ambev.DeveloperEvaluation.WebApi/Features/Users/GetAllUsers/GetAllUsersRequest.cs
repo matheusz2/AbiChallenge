@@ -69,9 +69,4 @@ public class GetAllUsersRequest
     /// Filter by phone (supports wildcards)
     /// </summary>
     public string? phone { get; set; }
-
-    // Properties for backward compatibility and mapping
-    public int Page => _page;
-    public int Size => _size;
-    public string? Order => _order;
 } 

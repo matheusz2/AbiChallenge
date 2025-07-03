@@ -15,7 +15,9 @@ public class GetAllUsersProfile : Profile
     public GetAllUsersProfile()
     {
         CreateMap<GetAllUsersRequest, GetAllUsersCommand>()
-            .ForMember(dest => dest.PageSize, opt => opt.MapFrom(src => src.Size))
+            .ForMember(dest => dest.Page, opt => opt.MapFrom(src => src._page))
+            .ForMember(dest => dest.PageSize, opt => opt.MapFrom(src => src._size))
+            .ForMember(dest => dest.Order, opt => opt.MapFrom(src => src._order))
             .ForMember(dest => dest.Filter, opt => opt.MapFrom(src => new UserFilter
             {
                 Username = src.username,

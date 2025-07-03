@@ -9,7 +9,7 @@ public class GetProductsByCategoryProfile : Profile
     public GetProductsByCategoryProfile()
     {
         CreateMap<GetProductsByCategoryRequest, GetProductsByCategoryCommand>()
-            .ConstructUsing(src => new GetProductsByCategoryCommand(src.Category, src.Page, src.Size, src.Order));
+            .ConstructUsing(src => new GetProductsByCategoryCommand(src.Category, src._page, src._size, src._order));
 
         CreateMap<GetProductsByCategoryItemResult, GetProductResponse>()
             .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => new ProductRating 
