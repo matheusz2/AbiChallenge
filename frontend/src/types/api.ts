@@ -34,11 +34,26 @@ export interface User {
 }
 
 export interface CreateUserRequest {
-  username: string;
   email: string;
-  phone: string;
+  username: string;
   password: string;
-  role: 'Admin' | 'Customer' | 'Manager';
+  name: {
+    firstname: string;
+    lastname: string;
+  };
+  address: {
+    city: string;
+    street: string;
+    number: number;
+    zipcode: string;
+    geolocation: {
+      lat: string;
+      long: string;
+    };
+  };
+  phone: string;
+  status: number;
+  role: number;
 }
 
 export interface UpdateUserRequest {
@@ -46,8 +61,8 @@ export interface UpdateUserRequest {
   username: string;
   email: string;
   phone: string;
-  status: 'Active' | 'Inactive' | 'Suspended';
-  role: 'Admin' | 'Customer' | 'Manager';
+  status: 1;
+  role: 1;
 }
 
 // Tipos para Product

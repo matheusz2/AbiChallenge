@@ -36,16 +36,6 @@ public class CreateUserRequest
     /// User's phone number
     /// </summary>
     public string Phone { get; set; } = string.Empty;
-
-    /// <summary>
-    /// User's status
-    /// </summary>
-    public UserStatus Status { get; set; }
-
-    /// <summary>
-    /// User's role
-    /// </summary>
-    public UserRole Role { get; set; }
 }
 
 /// <summary>

@@ -4,6 +4,7 @@ using FluentValidation;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Common.Security;
+using Ambev.DeveloperEvaluation.Domain.Enums;
 
 namespace Ambev.DeveloperEvaluation.Application.Users.CreateUser;
 
@@ -62,8 +63,8 @@ public class CreateUserHandler : IRequestHandler<CreateUserCommand, CreateUserRe
             Email = command.Email,
             Password = _passwordHasher.HashPassword(command.Password),
             Phone = command.Phone,
-            Status = command.Status,
-            Role = command.Role,
+            Status = UserStatus.Active, // Force Creating Actived
+            Role = UserRole.Customer, //Force Creating Customer
             Name = new Name
             {
                 Firstname = command.Firstname,

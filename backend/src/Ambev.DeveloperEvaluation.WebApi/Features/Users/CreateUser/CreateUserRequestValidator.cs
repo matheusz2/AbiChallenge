@@ -93,12 +93,5 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .Length(5, 20)
             .WithMessage("Zipcode must be between 5 and 20 characters");
 
-        RuleFor(x => x.Status)
-            .IsInEnum()
-            .WithMessage("Status must be a valid value");
-
-        RuleFor(x => x.Role)
-            .IsInEnum()
-            .WithMessage("Role must be a valid value");
     }
 }
