@@ -87,25 +87,25 @@ export interface SaleItem {
   productId: string;
   quantity: number;
   unitPrice: number;
-  discount: number;
-  totalAmount: number;
+  totalPrice: number;
 }
 
 export interface Sale {
   id: string;
-  saleNumber: string;
   customerId: string;
-  customerName: string;
-  saleDate: string;
-  totalAmount: number;
-  branch: string;
+  branchId: string;
   items: SaleItem[];
-  cancelled: boolean;
+  subtotal: number;
+  discountAmount: number;
+  discountPercentage: number;
+  total: number;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CreateSaleRequest {
   customerId: string;
-  branch: string;
+  branchId: string;
   items: {
     productId: string;
     quantity: number;
@@ -116,7 +116,7 @@ export interface CreateSaleRequest {
 export interface UpdateSaleRequest {
   id: string;
   customerId: string;
-  branch: string;
+  branchId: string;
   items: {
     productId: string;
     quantity: number;
@@ -127,31 +127,32 @@ export interface UpdateSaleRequest {
 // Tipos para Cart
 export interface CartItem {
   id: string;
-  productId: string;
+  productId: number;
   quantity: number;
-  unitPrice: number;
+  unitPrice?: number;
 }
 
 export interface Cart {
   id: string;
-  userId: string;
+  userId: number;
   date: string;
-  items: CartItem[];
+  products: CartItem[];
+  items?: CartItem[];
 }
 
 export interface CreateCartRequest {
-  userId: string;
+  userId: number;
   items: {
-    productId: string;
+    productId: number;
     quantity: number;
   }[];
 }
 
 export interface UpdateCartRequest {
   id: string;
-  userId: string;
+  userId: number;
   items: {
-    productId: string;
+    productId: number;
     quantity: number;
   }[];
 }

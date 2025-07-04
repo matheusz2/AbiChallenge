@@ -22,6 +22,9 @@ const Carts: React.FC = () => {
         pageSize: 10,
       });
       
+      console.log('📦 Dados dos carrinhos recebidos:', response);
+      console.log('📦 Primeiro carrinho (se existir):', response.data[0]);
+      
       setCarts(response.data);
               setPagination({
           currentPage: response.currentPage,
@@ -29,6 +32,7 @@ const Carts: React.FC = () => {
           totalCount: response.totalCount,
         });
     } catch (err: any) {
+      console.error('❌ Erro ao carregar carrinhos:', err);
       setError(err.response?.data?.message || 'Erro ao carregar carrinhos');
     } finally {
       setLoading(false);
@@ -59,11 +63,29 @@ const Carts: React.FC = () => {
   };
 
   const getTotalItems = (cart: Cart) => {
-    return cart.items.reduce((total, item) => total + item.quantity, 0);
+    console.log('🔍 Analisando carrinho para total de itens:', cart);
+    // Verifica se tem items ou products
+    const items = cart.items || cart.products || [];
+    console.log('📦 Items encontrados:', items);
+    if (!Array.isArray(items)) {
+      console.log('⚠️ Items não é um array');
+      return 0;
+    }
+    const total = items.reduce((total, item) => total + item.quantity, 0);
+    console.log('📊 Total de itens:', total);
+    return total;
   };
 
   const getTotalPrice = (cart: Cart) => {
-    const total = cart.items.reduce((total, item) => total + (item.quantity * item.unitPrice), 0);
+    // Verifica se tem items ou products
+    const items = cart.items || cart.products || [];
+    if (!Array.isArray(items)) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(0);
+    }
+    const total = items.reduce((total, item) => total + (item.quantity * (item.unitPrice || 0)), 0);
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -144,7 +166,7 @@ const Carts: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {cart.userId.substring(0, 8)}...
+                        Usuário #{cart.userId}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

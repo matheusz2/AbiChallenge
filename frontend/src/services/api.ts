@@ -80,7 +80,7 @@ export const authService = {
 export const userService = {
   getAll: async (params?: PaginationParams): Promise<PaginatedResponse<User>> => {
     const response = await api.get('/users', { params });
-    return response.data;
+    return response.data.data;
   },
 
   getById: async (id: string): Promise<User> => {
@@ -107,7 +107,7 @@ export const userService = {
 export const productService = {
   getAll: async (params?: PaginationParams): Promise<PaginatedResponse<Product>> => {
     const response = await api.get('/products', { params });
-    return response.data;
+    return response.data.data;
   },
 
   getById: async (id: string): Promise<Product> => {
@@ -136,7 +136,7 @@ export const productService = {
 
   getByCategory: async (category: string, params?: PaginationParams): Promise<PaginatedResponse<Product>> => {
     const response = await api.get(`/products/category/${category}`, { params });
-    return response.data;
+    return response.data.data;
   },
 };
 
@@ -144,7 +144,7 @@ export const productService = {
 export const saleService = {
   getAll: async (params?: PaginationParams): Promise<PaginatedResponse<Sale>> => {
     const response = await api.get('/sales', { params });
-    return response.data;
+    return response.data.data;
   },
 
   getById: async (id: string): Promise<Sale> => {
@@ -171,7 +171,7 @@ export const saleService = {
 export const cartService = {
   getAll: async (params?: PaginationParams): Promise<PaginatedResponse<Cart>> => {
     const response = await api.get('/carts', { params });
-    return response.data;
+    return response.data.data;
   },
 
   getById: async (id: string): Promise<Cart> => {
@@ -218,8 +218,8 @@ export const dashboardService = {
       console.log('Sales response:', salesResponse.data);
       console.log('Carts response:', cartsResponse.data);
 
-      // A resposta tem estrutura: { data: { currentPage, totalPages, totalCount, data: [...] } }
-      // onde response.data é o PaginatedResponse com totalCount no primeiro nível
+      // A resposta tem estrutura: { data: { data: { currentPage, totalPages, totalCount, data: [...] } } }
+      // Seguindo o padrão response.data.data.totalCount
       const stats = {
         totalUsers: usersResponse.data.data.totalCount || 0,
         totalProducts: productsResponse.data.data.totalCount || 0,
