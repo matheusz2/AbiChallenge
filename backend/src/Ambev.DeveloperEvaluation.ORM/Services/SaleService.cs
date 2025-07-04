@@ -21,23 +21,38 @@ public class SaleService : ISaleService
             throw new InvalidOperationException("A venda não atende às regras de negócio.");
 
         var subtotal = CalculateSubtotal(sale);
-        var discountPercentage = CalculateDiscountPercentage(sale.Items.Count);
-        var discountAmount = CalculateDiscountAmount(subtotal, discountPercentage);
-        var total = CalculateTotal(subtotal, discountAmount);
+        var totalDiscount = 0m;
+        var totalWithDiscount = 0m;
+
+        // Calcular desconto por produto individual
+        foreach (var item in sale.Items)
+        {
+            var itemTotal = item.Quantity * item.UnitPrice;
+            var discountPercentage = CalculateDiscountPercentage(item.Quantity);
+            var itemDiscount = CalculateDiscountAmount(itemTotal, discountPercentage);
+            
+            totalDiscount += itemDiscount;
+            totalWithDiscount += (itemTotal - itemDiscount);
+            
+            // Atualizar o item com o desconto calculado
+            item.TotalPrice = itemTotal - itemDiscount;
+        }
+
+        var total = CalculateTotal(subtotal, totalDiscount);
 
         sale.Subtotal = subtotal;
-        sale.DiscountPercentage = discountPercentage;
-        sale.DiscountAmount = discountAmount;
+        sale.DiscountPercentage = subtotal > 0 ? (totalDiscount / subtotal) * 100 : 0;
+        sale.DiscountAmount = totalDiscount;
         sale.Total = total;
 
         await Task.CompletedTask;
     }
 
-    public decimal CalculateDiscountPercentage(int itemsCount)
+    public decimal CalculateDiscountPercentage(int quantity)
     {
-        if (itemsCount >= 10 && itemsCount <= 20)
+        if (quantity >= 10 && quantity <= 20)
             return 20m;
-        if (itemsCount >= 4)
+        if (quantity >= 4)
             return 10m;
         return 0m;
     }
@@ -61,10 +76,23 @@ public class SaleService : ISaleService
     {
         if (sale.Items == null || sale.Items.Count == 0)
             return false;
+            
+        // Verificar se há mais de 20 itens na venda
         if (sale.Items.Count > 20)
             return false;
-        if (sale.Items.Any(item => item.Quantity <= 0 || item.UnitPrice <= 0))
+            
+        // Verificar se há produtos com mais de 20 unidades
+        if (sale.Items.Any(item => item.Quantity > 20))
             return false;
+            
+        // Verificar se há produtos com quantidade zero ou negativa
+        if (sale.Items.Any(item => item.Quantity <= 0))
+            return false;
+            
+        // Verificar se há produtos com preço zero ou negativo
+        if (sale.Items.Any(item => item.UnitPrice <= 0))
+            return false;
+            
         return true;
     }
 } 

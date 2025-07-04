@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Plus, Edit, Trash2, Eye, Search, Filter, DollarSign } from 'lucide-react';
-import { saleService } from '../../services/api';
-import type { Sale } from '../../types/api';
+import { saleService, productService } from '../../services/api';
+import type { Sale, Product } from '../../types/api';
 import Pagination from '../../components/Pagination/Pagination';
 import Modal from '../../components/Modal/Modal';
 import SaleForm from './SaleForm';
+import CreateSaleModal from '../../components/CreateSaleModal';
 
 const Sales: React.FC = () => {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -21,6 +22,10 @@ const Sales: React.FC = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Estados para criação de venda
+  const [products, setProducts] = useState<Product[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
 
   const pageSize = 10;
 
@@ -129,6 +134,32 @@ const Sales: React.FC = () => {
     
     return matchesSearch;
   });
+
+  // Carregar dados necessários para criação de venda
+  useEffect(() => {
+    const loadSaleData = async () => {
+      try {
+        // Carregar produtos
+        const productsResponse = await productService.getAll({ _page: 1, _size: 100 });
+        setProducts(productsResponse.data?.data || []);
+
+        // TODO: Carregar clientes quando as APIs estiverem disponíveis
+        setCustomers([
+          { id: '1', name: 'Cliente Teste 1', email: 'cliente1@teste.com' },
+          { id: '2', name: 'Cliente Teste 2', email: 'cliente2@teste.com' },
+          { id: '3', name: 'Cliente Teste 3', email: 'cliente3@teste.com' },
+          { id: '4', name: 'Cliente Teste 4', email: 'cliente4@teste.com' },
+          { id: '5', name: 'Cliente Teste 5', email: 'cliente5@teste.com' }
+        ]);
+      } catch (error) {
+        console.error('Erro ao carregar dados para venda:', error);
+      }
+    };
+
+    if (showCreateModal) {
+      loadSaleData();
+    }
+  }, [showCreateModal]);
 
   if (loading) {
     return (
@@ -296,18 +327,14 @@ const Sales: React.FC = () => {
       )}
 
       {/* Modal Criar Venda */}
-      <Modal
+      <CreateSaleModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        title="Criar Nova Venda"
-        size="xl"
-      >
-        <SaleForm
-          onSubmit={handleCreateSale}
-          onCancel={() => setShowCreateModal(false)}
-          isLoading={isSubmitting}
-        />
-      </Modal>
+        products={products}
+        customers={customers}
+        onCreateSale={handleCreateSale}
+        isLoading={isSubmitting}
+      />
 
       {/* Modal Editar Venda */}
       <Modal

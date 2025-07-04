@@ -16,20 +16,21 @@ public interface ISaleService
     /// <remarks>
     /// Business rules applied:
     /// - Maximum 20 items per sale
-    /// - Automatic discount calculation:
-    ///   - 4+ items: 10% discount
-    ///   - 10-20 items: 20% discount
-    ///   - Less than 4 items: No discount
+    /// - Maximum 20 identical items per product
+    /// - Automatic discount calculation per identical product:
+    ///   - 4+ identical items: 10% discount
+    ///   - 10-20 identical items: 20% discount
+    ///   - Less than 4 identical items: No discount
     /// - Calculation of subtotal, discount amount, and total
     /// </remarks>
     Task ApplyBusinessRulesAsync(Sale sale, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Calculates the discount percentage based on the number of items
+    /// Calculates the discount percentage based on the quantity of identical items
     /// </summary>
-    /// <param name="itemsCount">The number of items in the sale</param>
+    /// <param name="quantity">The quantity of identical items</param>
     /// <returns>The discount percentage (0, 10, or 20)</returns>
-    decimal CalculateDiscountPercentage(int itemsCount);
+    decimal CalculateDiscountPercentage(int quantity);
 
     /// <summary>
     /// Calculates the subtotal of all items in the sale

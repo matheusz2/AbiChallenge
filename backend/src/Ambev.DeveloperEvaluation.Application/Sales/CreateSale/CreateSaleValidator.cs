@@ -17,6 +17,9 @@ public class CreateSaleCommandValidator : AbstractValidator<CreateSaleCommand>
     /// - Items: Must not be empty and must contain valid items
     /// - Items count: Maximum 20 items allowed
     /// - Each item: Must have valid ProductId, Quantity > 0, and UnitPrice > 0
+    /// - Business rules:
+    ///   - Maximum 20 identical items per product
+    ///   - No discounts for quantities below 4 identical items
     /// </remarks>
     public CreateSaleCommandValidator()
     {
@@ -38,6 +41,16 @@ public class CreateSaleCommandValidator : AbstractValidator<CreateSaleCommand>
 
         RuleForEach(sale => sale.Items)
             .SetValidator(new CreateSaleItemCommandValidator());
+
+        // Validar regras de negócio por produto
+        RuleFor(sale => sale.Items)
+            .Must(items => !items.Any(item => item.Quantity > 20))
+            .WithMessage("No product can have more than 20 identical items");
+
+        // Validar se há produtos duplicados (mesmo ProductId)
+        RuleFor(sale => sale.Items)
+            .Must(items => items.GroupBy(item => item.ProductId).All(group => group.Count() == 1))
+            .WithMessage("Each product can only appear once in the sale (use quantity for multiple items)");
     }
 }
 
@@ -57,7 +70,9 @@ public class CreateSaleItemCommandValidator : AbstractValidator<CreateSaleItemCo
 
         RuleFor(item => item.Quantity)
             .GreaterThan(0)
-            .WithMessage("Quantity must be greater than zero");
+            .WithMessage("Quantity must be greater than zero")
+            .LessThanOrEqualTo(20)
+            .WithMessage("Quantity cannot exceed 20 identical items");
 
         RuleFor(item => item.UnitPrice)
             .GreaterThan(0)

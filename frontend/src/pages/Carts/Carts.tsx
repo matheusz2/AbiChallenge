@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Edit, Trash2, Eye, Search, Filter, User, Package } from 'lucide-react';
+import { ShoppingCart, Plus, Edit, Trash2, Eye, Search, Filter, User, Package, DollarSign } from 'lucide-react';
 import { cartService, productService } from '../../services/api';
 import type { Cart, CartProduct, Product } from '../../types/api';
 import Pagination from '../../components/Pagination/Pagination';
 import Modal from '../../components/Modal/Modal';
 import CartForm from './CartForm';
+import CartToSaleModal from '../../components/CartToSaleModal';
 
 // Componente para exibir uma linha de produto com informações detalhadas
 const ProductRow: React.FC<{ product: CartProduct }> = ({ product }) => {
@@ -14,21 +15,33 @@ const ProductRow: React.FC<{ product: CartProduct }> = ({ product }) => {
   useEffect(() => {
     const loadProductInfo = async () => {
       try {
-        // Tentar buscar o produto específico primeiro
-        const productGuid = `550e8400-e29b-41d4-a716-44665544000${product.productId.toString().padStart(2, '0')}`;
-        console.log('Buscando produto com GUID:', productGuid);
+        // Buscar produto por índice (productId é numérico)
+        const productIndex = product.productId - 1; // Ajustar índice
         
         try {
-          const productInfo = await productService.getById(productGuid);
-          setProductInfo(productInfo);
-        } catch (error) {
-          console.log('Produto não encontrado por GUID, buscando por índice...');
-          // Fallback: buscar todos os produtos e encontrar por índice
+          // Primeiro tentar buscar todos os produtos e pegar pelo índice
           const response = await productService.getAll({ _page: 1, _size: 100 });
           const products = response.data?.data || [];
           
-          const productFound = products.find((p, index) => (index + 1) === product.productId);
-          setProductInfo(productFound || null);
+          const productFound = products[productIndex];
+          if (productFound) {
+            setProductInfo(productFound);
+          } else {
+            // Fallback: tentar buscar por GUID específico
+            const productGuid = `550e8400-e29b-41d4-a716-44665544000${product.productId.toString().padStart(2, '0')}`;
+            console.log('Buscando produto com GUID:', productGuid);
+            
+            try {
+              const productInfo = await productService.getById(productGuid);
+              setProductInfo(productInfo);
+            } catch (error) {
+              console.log('Produto não encontrado por GUID, usando fallback...');
+              setProductInfo(null);
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao carregar informações do produto:', error);
+          setProductInfo(null);
         }
       } catch (error) {
         console.error('Erro ao carregar informações do produto:', error);
@@ -69,7 +82,7 @@ const ProductRow: React.FC<{ product: CartProduct }> = ({ product }) => {
             </div>
             {productInfo && (
               <div className="text-xs text-gray-500">
-                {productInfo.category} • ${productInfo.price}
+                {productInfo.category} • R$ {productInfo.price.toFixed(2)}
               </div>
             )}
             {!productInfo && (
@@ -114,8 +127,13 @@ const Carts: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showConvertToSaleModal, setShowConvertToSaleModal] = useState(false);
   const [selectedCart, setSelectedCart] = useState<Cart | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Estados para conversão em venda
+  const [products, setProducts] = useState<Product[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
 
   const pageSize = 10;
 
@@ -227,6 +245,56 @@ const Carts: React.FC = () => {
     
     return matchesSearch;
   });
+
+  const handleConvertToSale = async (saleData: any) => {
+    try {
+      setIsSubmitting(true);
+      // TODO: Implementar chamada para criar venda
+      console.log('Convertendo carrinho em venda:', saleData);
+      alert('Funcionalidade de conversão em venda será implementada em breve!');
+      setShowConvertToSaleModal(false);
+    } catch (err) {
+      console.error('Erro ao converter carrinho em venda:', err);
+      alert('Erro ao converter carrinho em venda');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConvertCartToSale = (cart: Cart) => {
+    setSelectedCart(cart);
+    setShowConvertToSaleModal(true);
+  };
+
+  // Carregar dados necessários para conversão
+  useEffect(() => {
+    const loadConversionData = async () => {
+      try {
+        // Carregar produtos
+        const productsResponse = await productService.getAll({ _page: 1, _size: 100 });
+        const loadedProducts = productsResponse.data?.data || [];
+        console.log('Produtos carregados:', loadedProducts);
+        setProducts(loadedProducts);
+
+        // TODO: Carregar clientes quando a API estiver disponível
+        const testCustomers = [
+          { id: '1', name: 'Cliente Teste 1', email: 'cliente1@teste.com' },
+          { id: '2', name: 'Cliente Teste 2', email: 'cliente2@teste.com' },
+          { id: '3', name: 'Cliente Teste 3', email: 'cliente3@teste.com' },
+          { id: '4', name: 'Cliente Teste 4', email: 'cliente4@teste.com' },
+          { id: '5', name: 'Cliente Teste 5', email: 'cliente5@teste.com' }
+        ];
+        console.log('Clientes carregados:', testCustomers);
+        setCustomers(testCustomers);
+      } catch (error) {
+        console.error('Erro ao carregar dados para conversão:', error);
+      }
+    };
+
+    if (showConvertToSaleModal) {
+      loadConversionData();
+    }
+  }, [showConvertToSaleModal]);
 
   if (loading) {
     return (
@@ -341,6 +409,14 @@ const Carts: React.FC = () => {
                         title="Editar"
                       >
                         <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleConvertCartToSale(cart)}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Transformar em Venda"
+                        disabled={getTotalItems(cart) === 0}
+                      >
+                        <DollarSign className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteCart(cart.id)}
@@ -506,6 +582,22 @@ const Carts: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      {/* Modal Converter Carrinho em Venda */}
+      {selectedCart && (
+        <CartToSaleModal
+          isOpen={showConvertToSaleModal}
+          onClose={() => {
+            setShowConvertToSaleModal(false);
+            setSelectedCart(null);
+          }}
+          cart={selectedCart}
+          products={products}
+          customers={customers}
+          onConvertToSale={handleConvertToSale}
+          isLoading={isSubmitting}
+        />
+      )}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { Users, Package, Receipt, ShoppingCart, TrendingUp, TrendingDown, Refres
 import { dashboardService } from '../../services/api';
 import type { DashboardStats } from '../../types/api';
 import { useNavigate } from 'react-router-dom';
+import DiscountRules from '../../components/DiscountRules';
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -179,7 +180,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Seção de resumo */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -269,6 +270,10 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="lg:col-span-1">
+          <DiscountRules />
         </div>
       </div>
     </div>
