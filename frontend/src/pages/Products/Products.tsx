@@ -40,17 +40,11 @@ const Products: React.FC = () => {
 
       console.log('Products response:', response);
       
-      if (response.data && Array.isArray(response.data)) {
-        setProducts(response.data);
-        setCurrentPage(1);
-        setTotalPages(1);
-        setTotalCount(response.data.length);
-      } else if (response.data && typeof response.data === 'object') {
-        setProducts(response.data.data || []);
-        setCurrentPage(response.data.currentPage || 1);
-        setTotalPages(response.data.totalPages || 1);
-        setTotalCount(response.data.totalCount || 0);
-      }
+      // A resposta de getAll já retorna PaginatedResponse<Product>
+      setProducts(response.data || []);
+      setCurrentPage(response.currentPage || 1);
+      setTotalPages(response.totalPages || 1);
+      setTotalCount(response.totalCount || 0);
     } catch (err) {
       console.error('Erro ao buscar produtos:', err);
       setError('Erro ao carregar produtos');
@@ -61,14 +55,11 @@ const Products: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await productService.getCategories();
-      console.log('Categories response:', response);
+      const categories = await productService.getCategories();
+      console.log('Categories response:', categories);
       
-      if (response.data && Array.isArray(response.data)) {
-        setCategories(response.data);
-      } else if (response.data && response.data.data) {
-        setCategories(response.data.data);
-      }
+      // getCategories já retorna string[]
+      setCategories(categories || []);
     } catch (err) {
       console.error('Erro ao buscar categorias:', err);
     }

@@ -21,6 +21,11 @@ export interface PaginatedResponse<T> {
   totalCount: number;
 }
 
+// Resposta de categorias do backend
+export interface GetCategoriesResponse {
+  categories: string[];
+}
+
 // Tipos para User
 export interface User {
   id: string;
@@ -114,6 +119,10 @@ export interface CreateProductRequest {
   description: string;
   category: string;
   image: string;
+  rating: {
+    rate: number;
+    count: number;
+  };
 }
 
 export interface UpdateProductRequest {
@@ -123,6 +132,10 @@ export interface UpdateProductRequest {
   description: string;
   category: string;
   image: string;
+  rating: {
+    rate: number;
+    count: number;
+  };
 }
 
 // Tipos para Sale

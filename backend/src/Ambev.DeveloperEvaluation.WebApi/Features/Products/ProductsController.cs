@@ -116,11 +116,11 @@ public class ProductsController : BaseController
     /// <param name="id">Product unique identifier</param>
     /// <param name="request">Product update request</param>
     /// <returns>Updated product details</returns>
-    [HttpPut]
+    [HttpPut("{id}")]
     [ProducesResponseType(typeof(ApiResponseWithData<UpdateProductResponse>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductRequest request)
+    public async Task<IActionResult> UpdateProduct([FromRoute] Guid id, [FromBody] UpdateProductRequest request)
     {
         var validator = new UpdateProductRequestValidator();
         var validationResult = await validator.ValidateAsync(request);

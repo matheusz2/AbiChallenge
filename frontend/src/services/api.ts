@@ -20,7 +20,8 @@ import type {
   AuthenticateRequest,
   AuthenticateResponse,
   PaginationParams,
-  DashboardStats
+  DashboardStats,
+  GetCategoriesResponse
 } from '../types/api';
 
 // Configuração base do axios
@@ -120,8 +121,8 @@ export const productService = {
     return response.data.data;
   },
 
-  update: async (product: UpdateProductRequest): Promise<Product> => {
-    const response: AxiosResponse<ApiResponseWithData<Product>> = await api.put('/products', product);
+  update: async (id: string, product: UpdateProductRequest): Promise<Product> => {
+    const response: AxiosResponse<ApiResponseWithData<Product>> = await api.put(`/products/${id}`, product);
     return response.data.data;
   },
 
@@ -130,7 +131,7 @@ export const productService = {
   },
 
   getCategories: async (): Promise<string[]> => {
-    const response: AxiosResponse<ApiResponseWithData<{ categories: string[] }>> = await api.get('/products/categories');
+    const response: AxiosResponse<ApiResponseWithData<GetCategoriesResponse>> = await api.get('/products/categories');
     return response.data.data.categories;
   },
 

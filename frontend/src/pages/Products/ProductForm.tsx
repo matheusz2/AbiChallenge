@@ -15,7 +15,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, onCancel, 
     price: '',
     description: '',
     category: '',
-    image: ''
+    image: '',
+    rating: {
+      rate: 0,
+      count: 0
+    }
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -27,7 +31,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, onCancel, 
         price: product.price?.toString() || '',
         description: product.description || '',
         category: product.category || '',
-        image: product.image || ''
+        image: product.image || '',
+        rating: {
+          rate: product.rating?.rate || 0,
+          count: product.rating?.count || 0
+        }
       });
     }
   }, [product]);
@@ -60,17 +68,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, onCancel, 
         price: parseFloat(formData.price),
         description: formData.description,
         category: formData.category,
-        image: formData.image || 'https://via.placeholder.com/300x300?text=Produto'
+        image: formData.image || 'https://via.placeholder.com/300x300?text=Produto',
+        rating: formData.rating
       };
+
+      console.log('📦 Dados do produto a serem enviados:', productData);
 
       if (product) {
         // Edição
-        await onSubmit({
+        const updateData = {
           id: product.id,
           ...productData
-        });
+        };
+        console.log('🔄 Editando produto:', updateData);
+        await onSubmit(updateData);
       } else {
         // Criação
+        console.log('✨ Criando produto:', productData);
         await onSubmit(productData);
       }
     } catch (error) {
@@ -189,6 +203,57 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, onCancel, 
         <p className="text-xs text-gray-500 mt-1">
           Deixe em branco para usar uma imagem padrão
         </p>
+      </div>
+
+      {/* Rating */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Avaliação (Rate)
+          </label>
+          <input
+            type="number"
+            min="0"
+            max="5"
+            step="0.1"
+            value={formData.rating.rate}
+            onChange={(e) => setFormData(prev => ({ 
+              ...prev, 
+              rating: { 
+                ...prev.rating, 
+                rate: parseFloat(e.target.value) || 0 
+              } 
+            }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="0.0"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Avaliação de 0 a 5
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Número de Avaliações (Count)
+          </label>
+          <input
+            type="number"
+            min="0"
+            value={formData.rating.count}
+            onChange={(e) => setFormData(prev => ({ 
+              ...prev, 
+              rating: { 
+                ...prev.rating, 
+                count: parseInt(e.target.value) || 0 
+              } 
+            }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="0"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Quantidade de avaliações
+          </p>
+        </div>
       </div>
 
       {/* Preview da Imagem */}
