@@ -1,11 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Edit, Trash2, Eye, Search, Filter, DollarSign } from 'lucide-react';
-import { saleService, productService } from '../../services/api';
-import type { Sale, Product } from '../../types/api';
+import { ShoppingCart, Plus, Edit, Trash2, Eye, Search, Filter, DollarSign, Building, Percent } from 'lucide-react';
+import { saleService, productService, userService } from '../../services/api';
+import type { Sale, Product, User } from '../../types/api';
 import Pagination from '../../components/Pagination/Pagination';
 import Modal from '../../components/Modal/Modal';
 import SaleForm from './SaleForm';
 import CreateSaleModal from '../../components/CreateSaleModal';
+
+// Dados mockados para filiais
+interface Branch {
+  id: string;
+  name: string;
+  city: string;
+}
+
+const BRANCHES: Branch[] = [
+  {
+    id: '9b2f2719-4325-46cb-a7d5-f9a05058dc93',
+    name: 'Filial Belo Horizonte',
+    city: 'Belo Horizonte'
+  },
+  {
+    id: '9b2f2719-4325-46cb-a7d5-f9a05058dc92',
+    name: 'Filial Rio de Janeiro',
+    city: 'Rio de Janeiro'
+  }
+];
 
 const Sales: React.FC = () => {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -25,7 +45,7 @@ const Sales: React.FC = () => {
 
   // Estados para criação de venda
   const [products, setProducts] = useState<Product[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   const pageSize = 10;
 
@@ -66,6 +86,20 @@ const Sales: React.FC = () => {
   const handleCreateSale = async (saleData: any) => {
     try {
       setIsSubmitting(true);
+      console.log('Criando venda com dados:', saleData);
+      
+      // Validar payload antes do envio
+      if (!saleData.customerId || !saleData.branchId || !saleData.items || saleData.items.length === 0) {
+        throw new Error('Dados da venda incompletos');
+      }
+
+      // Validar cada item
+      saleData.items.forEach((item: any, index: number) => {
+        if (!item.productId || item.quantity <= 0 || item.unitPrice <= 0) {
+          throw new Error(`Item ${index + 1} inválido`);
+        }
+      });
+
       await saleService.create(saleData);
       setShowCreateModal(false);
       fetchSales(currentPage);
@@ -127,9 +161,50 @@ const Sales: React.FC = () => {
     return new Date(dateString).toLocaleString('pt-BR');
   };
 
+  // Função para obter o nome do usuário pelo customerId
+  const getUserName = (customerId: string) => {
+    const user = users.find(u => u.id === customerId);
+    if (user) {
+      return `${user.name.firstname} ${user.name.lastname}`;
+    }
+    return customerId; // Fallback para o ID se não encontrar o usuário
+  };
+
+  // Função para obter o nome da filial pelo branchId
+  const getBranchName = (branchId: string) => {
+    const branch = BRANCHES.find(b => b.id === branchId);
+    if (branch) {
+      return branch.name;
+    }
+    return branchId; // Fallback para o ID se não encontrar a filial
+  };
+
+  // Função para calcular desconto por item
+  const calculateItemDiscount = (quantity: number, unitPrice: number) => {
+    let discountPercentage = 0;
+    if (quantity >= 10 && quantity <= 20) {
+      discountPercentage = 20;
+    } else if (quantity >= 4) {
+      discountPercentage = 10;
+    }
+    
+    const itemTotal = quantity * unitPrice;
+    const discountAmount = (itemTotal * discountPercentage) / 100;
+    const totalWithDiscount = itemTotal - discountAmount;
+    
+    return {
+      discountPercentage,
+      discountAmount,
+      totalWithDiscount,
+      itemTotal
+    };
+  };
+
   const filteredSales = sales.filter(sale => {
-    const matchesSearch = sale.customerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         sale.branchId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const customerName = getUserName(sale.customerId).toLowerCase();
+    const branchName = getBranchName(sale.branchId).toLowerCase();
+    const matchesSearch = customerName.includes(searchTerm.toLowerCase()) ||
+                         branchName.includes(searchTerm.toLowerCase()) ||
                          sale.id.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesSearch;
@@ -143,14 +218,11 @@ const Sales: React.FC = () => {
         const productsResponse = await productService.getAll({ _page: 1, _size: 100 });
         setProducts(productsResponse.data?.data || []);
 
-        // TODO: Carregar clientes quando as APIs estiverem disponíveis
-        setCustomers([
-          { id: '1', name: 'Cliente Teste 1', email: 'cliente1@teste.com' },
-          { id: '2', name: 'Cliente Teste 2', email: 'cliente2@teste.com' },
-          { id: '3', name: 'Cliente Teste 3', email: 'cliente3@teste.com' },
-          { id: '4', name: 'Cliente Teste 4', email: 'cliente4@teste.com' },
-          { id: '5', name: 'Cliente Teste 5', email: 'cliente5@teste.com' }
-        ]);
+        // Carregar usuários (clientes)
+        const usersResponse = await userService.getAll({ _page: 1, _size: 100 });
+        setUsers(usersResponse.data?.data || []);
+        
+        console.log('Usuários carregados:', usersResponse.data?.data);
       } catch (error) {
         console.error('Erro ao carregar dados para venda:', error);
       }
@@ -196,7 +268,7 @@ const Sales: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar vendas..."
+              placeholder="Buscar por cliente, filial ou ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -250,10 +322,12 @@ const Sales: React.FC = () => {
                     <div className="text-sm font-medium text-gray-900">#{sale.id.substring(0, 8)}...</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{sale.customerId}</div>
+                    <div className="text-sm text-gray-900">{getUserName(sale.customerId)}</div>
+                    <div className="text-xs text-gray-500">{sale.customerId}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{sale.branchId}</div>
+                    <div className="text-sm text-gray-900">{getBranchName(sale.branchId)}</div>
+                    <div className="text-xs text-gray-500">{sale.branchId}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{sale.items?.length || 0} itens</div>
@@ -331,7 +405,12 @@ const Sales: React.FC = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         products={products}
-        customers={customers}
+        customers={users.map(user => ({
+          id: user.id,
+          name: `${user.name.firstname} ${user.name.lastname}`,
+          email: user.email
+        }))}
+        branches={BRANCHES}
         onCreateSale={handleCreateSale}
         isLoading={isSubmitting}
       />
@@ -379,11 +458,13 @@ const Sales: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Cliente</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedSale.customerId}</p>
+                <p className="mt-1 text-sm text-gray-900">{getUserName(selectedSale.customerId)}</p>
+                <p className="text-xs text-gray-500">{selectedSale.customerId}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Filial</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedSale.branchId}</p>
+                <p className="mt-1 text-sm text-gray-900">{getBranchName(selectedSale.branchId)}</p>
+                <p className="text-xs text-gray-500">{selectedSale.branchId}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Data</label>
@@ -408,25 +489,81 @@ const Sales: React.FC = () => {
                         Preço Unit.
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        Subtotal
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        Desconto
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                         Total
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {selectedSale.items?.map((item, index) => (
-                      <tr key={index}>
-                        <td className="px-4 py-2 text-sm text-gray-900">{item.productId}</td>
-                        <td className="px-4 py-2 text-sm text-gray-900">{item.quantity}</td>
-                        <td className="px-4 py-2 text-sm text-gray-900">{formatPrice(item.unitPrice)}</td>
-                        <td className="px-4 py-2 text-sm font-medium text-gray-900">
-                          {formatPrice(item.totalPrice || (item.quantity * item.unitPrice))}
-                        </td>
-                      </tr>
-                    ))}
+                    {selectedSale.items?.map((item, index) => {
+                      const discountInfo = calculateItemDiscount(item.quantity, item.unitPrice);
+                      
+                      return (
+                        <tr key={index}>
+                          <td className="px-4 py-2 text-sm text-gray-900">{item.productId}</td>
+                          <td className="px-4 py-2 text-sm text-gray-900">{item.quantity}</td>
+                          <td className="px-4 py-2 text-sm text-gray-900">{formatPrice(item.unitPrice)}</td>
+                          <td className="px-4 py-2 text-sm text-gray-900">
+                            {formatPrice(discountInfo.itemTotal)}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900">
+                            {discountInfo.discountPercentage > 0 ? (
+                              <div className="flex items-center gap-1">
+                                <Percent className="w-3 h-3 text-green-600" />
+                                <span className="text-green-600 font-medium">
+                                  {discountInfo.discountPercentage}% (-{formatPrice(discountInfo.discountAmount)})
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2 text-sm font-medium text-gray-900">
+                            {formatPrice(discountInfo.totalWithDiscount)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             </div>
+
+            {/* Resumo dos Descontos */}
+            {selectedSale.items && selectedSale.items.some(item => {
+              const discountInfo = calculateItemDiscount(item.quantity, item.unitPrice);
+              return discountInfo.discountPercentage > 0;
+            }) && (
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                  <Percent className="w-4 h-4" />
+                  Resumo dos Descontos Aplicados
+                </h4>
+                <div className="space-y-2">
+                  {selectedSale.items.map((item, index) => {
+                    const discountInfo = calculateItemDiscount(item.quantity, item.unitPrice);
+                    if (discountInfo.discountPercentage > 0) {
+                      return (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span className="text-blue-700">
+                            Item {index + 1} ({item.quantity} unidades):
+                          </span>
+                          <span className="text-blue-800 font-medium">
+                            {discountInfo.discountPercentage}% de desconto (-{formatPrice(discountInfo.discountAmount)})
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Totais */}
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -440,7 +577,7 @@ const Sales: React.FC = () => {
                 {selectedSale.discountAmount && selectedSale.discountAmount > 0 && (
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">
-                      Desconto ({selectedSale.discountPercentage}%):
+                      Desconto Total ({selectedSale.discountPercentage}%):
                     </span>
                     <span className="text-sm font-medium text-green-600">
                       -{formatPrice(selectedSale.discountAmount)}

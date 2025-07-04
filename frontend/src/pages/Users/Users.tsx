@@ -471,31 +471,6 @@ const Users: React.FC = () => {
               </div>
             )}
 
-            {/* Informações do Sistema */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">Informações do Sistema</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Criado em</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {selectedUser.createdAt && !isNaN(new Date(selectedUser.createdAt).getTime()) 
-                      ? new Date(selectedUser.createdAt).toLocaleString('pt-BR')
-                      : 'Não informado'
-                    }
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Atualizado em</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {selectedUser.updatedAt && !isNaN(new Date(selectedUser.updatedAt).getTime())
-                      ? new Date(selectedUser.updatedAt).toLocaleString('pt-BR')
-                      : 'Não informado'
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-            
             <div className="flex justify-end space-x-3 pt-4 border-t">
               <button
                 onClick={() => {

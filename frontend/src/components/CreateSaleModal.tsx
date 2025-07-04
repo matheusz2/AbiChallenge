@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShoppingCart, DollarSign, User, Plus, Trash2 } from 'lucide-react';
+import { X, ShoppingCart, DollarSign, User, Plus, Trash2, AlertTriangle, Building } from 'lucide-react';
 import type { Product } from '../types/api';
 import DiscountCalculator from './DiscountCalculator';
 
@@ -8,6 +8,12 @@ interface Customer {
   id: string;
   name: string;
   email: string;
+}
+
+interface Branch {
+  id: string;
+  name: string;
+  city: string;
 }
 
 interface SaleItem {
@@ -21,6 +27,7 @@ interface CreateSaleModalProps {
   onClose: () => void;
   products: Product[];
   customers: Customer[];
+  branches: Branch[];
   onCreateSale: (saleData: any) => void;
   isLoading?: boolean;
 }
@@ -30,12 +37,21 @@ const CreateSaleModal: React.FC<CreateSaleModalProps> = ({
   onClose,
   products,
   customers,
+  branches,
   onCreateSale,
   isLoading = false
 }) => {
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const [selectedBranchId, setSelectedBranchId] = useState('');
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // Preparar dados dos itens para o DiscountCalculator
+  const cartItems = saleItems.map(item => ({
+    productId: parseInt(item.productId) || 0,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice
+  }));
 
   // Calcular subtotal da venda
   const subtotal = saleItems.reduce((total, item) => {
@@ -44,9 +60,38 @@ const CreateSaleModal: React.FC<CreateSaleModalProps> = ({
 
   const itemsCount = saleItems.length;
 
+  // Validar regras de negócio por produto
+  const validateBusinessRules = () => {
+    const newErrors: { [key: string]: string } = {};
+    
+    // Verificar se há produtos com mais de 20 unidades
+    const productsWithExcessQuantity = saleItems.filter(item => item.quantity > 20);
+    if (productsWithExcessQuantity.length > 0) {
+      const productIds = productsWithExcessQuantity.map(item => item.productId).join(', ');
+      newErrors.quantity = `Produtos com excesso de quantidade (máximo 20): ${productIds}`;
+    }
+    
+    // Verificar se há produtos com quantidade zero ou negativa
+    const productsWithInvalidQuantity = saleItems.filter(item => item.quantity <= 0);
+    if (productsWithInvalidQuantity.length > 0) {
+      const productIds = productsWithInvalidQuantity.map(item => item.productId).join(', ');
+      newErrors.quantity = `Produtos com quantidade inválida: ${productIds}`;
+    }
+
+    // Verificar se há produtos duplicados
+    const productIds = saleItems.map(item => item.productId);
+    const duplicateProductIds = productIds.filter((id, index) => productIds.indexOf(id) !== index);
+    if (duplicateProductIds.length > 0) {
+      newErrors.duplicates = `Produtos duplicados: ${duplicateProductIds.join(', ')}`;
+    }
+    
+    return newErrors;
+  };
+
   useEffect(() => {
     if (isOpen) {
       setSelectedCustomerId('');
+      setSelectedBranchId('');
       setSaleItems([]);
       setErrors({});
     }
@@ -89,6 +134,10 @@ const CreateSaleModal: React.FC<CreateSaleModalProps> = ({
     if (!selectedCustomerId) {
       newErrors.customerId = 'Cliente é obrigatório';
     }
+
+    if (!selectedBranchId) {
+      newErrors.branchId = 'Filial é obrigatória';
+    }
     
     if (itemsCount === 0) {
       newErrors.items = 'Venda deve ter pelo menos um item';
@@ -110,6 +159,10 @@ const CreateSaleModal: React.FC<CreateSaleModalProps> = ({
         newErrors[`item${index}Price`] = 'Preço deve ser maior que zero';
       }
     });
+
+    // Validar regras de negócio por produto
+    const businessRuleErrors = validateBusinessRules();
+    Object.assign(newErrors, businessRuleErrors);
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -118,10 +171,11 @@ const CreateSaleModal: React.FC<CreateSaleModalProps> = ({
     
     const saleData = {
       customerId: selectedCustomerId,
-      branchId: '1', // Filial padrão
+      branchId: selectedBranchId,
       items: saleItems
     };
     
+    console.log('Dados da venda:', saleData);
     onCreateSale(saleData);
   };
 
@@ -150,29 +204,57 @@ const CreateSaleModal: React.FC<CreateSaleModalProps> = ({
             {/* Formulário */}
             <div className="lg:col-span-2">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Cliente */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <User className="w-4 h-4 inline mr-2" />
-                    Cliente *
-                  </label>
-                  <select
-                    value={selectedCustomerId}
-                    onChange={(e) => setSelectedCustomerId(e.target.value)}
-                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.customerId ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">Selecione um cliente</option>
-                    {customers.map((customer) => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.name} - {customer.email}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.customerId && (
-                    <p className="text-red-500 text-sm mt-1">{errors.customerId}</p>
-                  )}
+                {/* Cliente e Filial */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Cliente */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <User className="w-4 h-4 inline mr-2" />
+                      Cliente *
+                    </label>
+                    <select
+                      value={selectedCustomerId}
+                      onChange={(e) => setSelectedCustomerId(e.target.value)}
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.customerId ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Selecione um cliente</option>
+                      {customers.map((customer) => (
+                        <option key={customer.id} value={customer.id}>
+                          {customer.name} - {customer.email}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.customerId && (
+                      <p className="text-red-500 text-sm mt-1">{errors.customerId}</p>
+                    )}
+                  </div>
+
+                  {/* Filial */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <Building className="w-4 h-4 inline mr-2" />
+                      Filial *
+                    </label>
+                    <select
+                      value={selectedBranchId}
+                      onChange={(e) => setSelectedBranchId(e.target.value)}
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.branchId ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Selecione uma filial</option>
+                      {branches.map((branch) => (
+                        <option key={branch.id} value={branch.id}>
+                          {branch.name} - {branch.city}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.branchId && (
+                      <p className="text-red-500 text-sm mt-1">{errors.branchId}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Itens da Venda */}
@@ -200,88 +282,119 @@ const CreateSaleModal: React.FC<CreateSaleModalProps> = ({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {saleItems.map((item, index) => (
-                        <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-medium text-gray-700">Item #{index + 1}</h4>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveItem(index)}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Produto *
-                              </label>
-                              <select
-                                value={item.productId}
-                                onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
-                                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                  errors[`item${index}Product`] ? 'border-red-500' : 'border-gray-300'
-                                }`}
+                      {saleItems.map((item, index) => {
+                        const product = products.find(p => p.id === item.productId);
+                        
+                        // Calcular desconto por produto
+                        const calculateProductDiscount = (quantity: number) => {
+                          if (quantity >= 10 && quantity <= 20) return 20;
+                          if (quantity >= 4) return 10;
+                          return 0;
+                        };
+
+                        const discountPercentage = calculateProductDiscount(item.quantity);
+                        const itemTotal = item.quantity * item.unitPrice;
+                        const itemDiscount = (itemTotal * discountPercentage) / 100;
+                        const itemTotalWithDiscount = itemTotal - itemDiscount;
+
+                        return (
+                          <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium text-gray-700">Item #{index + 1}</h4>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveItem(index)}
+                                className="text-red-600 hover:text-red-800"
                               >
-                                <option value="">Selecione um produto</option>
-                                {products.map((product) => (
-                                  <option key={product.id} value={product.id}>
-                                    {product.title} - R$ {product.price.toFixed(2)}
-                                  </option>
-                                ))}
-                              </select>
-                              {errors[`item${index}Product`] && (
-                                <p className="text-red-500 text-xs mt-1">{errors[`item${index}Product`]}</p>
-                              )}
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Produto *
+                                </label>
+                                <select
+                                  value={item.productId}
+                                  onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
+                                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                    errors[`item${index}Product`] ? 'border-red-500' : 'border-gray-300'
+                                  }`}
+                                >
+                                  <option value="">Selecione um produto</option>
+                                  {products.map((product) => (
+                                    <option key={product.id} value={product.id}>
+                                      {product.title} - R$ {product.price.toFixed(2)}
+                                    </option>
+                                  ))}
+                                </select>
+                                {errors[`item${index}Product`] && (
+                                  <p className="text-red-500 text-xs mt-1">{errors[`item${index}Product`]}</p>
+                                )}
+                              </div>
 
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Quantidade *
-                              </label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={item.quantity}
-                                onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                  errors[`item${index}Quantity`] ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                              />
-                              {errors[`item${index}Quantity`] && (
-                                <p className="text-red-500 text-xs mt-1">{errors[`item${index}Quantity`]}</p>
-                              )}
-                            </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Quantidade *
+                                </label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="20"
+                                  value={item.quantity}
+                                  onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                    errors[`item${index}Quantity`] ? 'border-red-500' : 'border-gray-300'
+                                  }`}
+                                />
+                                {errors[`item${index}Quantity`] && (
+                                  <p className="text-red-500 text-xs mt-1">{errors[`item${index}Quantity`]}</p>
+                                )}
+                                {item.quantity > 20 && (
+                                  <p className="text-red-500 text-xs mt-1">Máximo 20 unidades por produto</p>
+                                )}
+                              </div>
 
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Preço Unitário
-                              </label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={item.unitPrice}
-                                onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                  errors[`item${index}Price`] ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                                readOnly
-                              />
-                              <p className="text-xs text-gray-500 mt-1">
-                                Total: R$ {(item.quantity * item.unitPrice).toFixed(2)}
-                              </p>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Preço Unitário
+                                </label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={item.unitPrice}
+                                  onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                    errors[`item${index}Price`] ? 'border-red-500' : 'border-gray-300'
+                                  }`}
+                                  readOnly
+                                />
+                                <div className="text-xs text-gray-500 mt-1">
+                                  <p>Total: R$ {itemTotalWithDiscount.toFixed(2)}</p>
+                                  {discountPercentage > 0 && (
+                                    <p className="text-green-600">
+                                      Desconto: {discountPercentage}% (-R$ {itemDiscount.toFixed(2)})
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                   
                   {errors.items && (
                     <p className="text-red-500 text-sm mt-1">{errors.items}</p>
+                  )}
+                  {errors.quantity && (
+                    <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>
+                  )}
+                  {errors.duplicates && (
+                    <p className="text-red-500 text-sm mt-1">{errors.duplicates}</p>
                   )}
                 </div>
 
@@ -296,7 +409,7 @@ const CreateSaleModal: React.FC<CreateSaleModalProps> = ({
                   </button>
                   <button
                     type="submit"
-                    disabled={isLoading || itemsCount === 0 || itemsCount > 20}
+                    disabled={isLoading || itemsCount === 0 || itemsCount > 20 || Object.keys(validateBusinessRules()).length > 0}
                     className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
                     {isLoading ? 'Processando...' : 'Criar Venda'}
@@ -310,6 +423,7 @@ const CreateSaleModal: React.FC<CreateSaleModalProps> = ({
               <DiscountCalculator
                 itemsCount={itemsCount}
                 subtotal={subtotal}
+                cartItems={cartItems}
                 className="sticky top-0"
               />
             </div>
