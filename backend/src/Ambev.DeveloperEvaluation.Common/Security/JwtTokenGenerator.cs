@@ -31,6 +31,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
     /// The generated token includes the following claims:
     /// - NameIdentifier (User ID)
     /// - Name (Username)
+    /// - Email (User email)
     /// - Role (User role)
     /// 
     /// The token is valid for 8 hours from the moment of generation.
@@ -45,6 +46,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         {
            new Claim(ClaimTypes.NameIdentifier, user.Id),
            new Claim(ClaimTypes.Name, user.Username),
+           new Claim(ClaimTypes.Email, user.Email),
            new Claim(ClaimTypes.Role, user.Role)
        };
 

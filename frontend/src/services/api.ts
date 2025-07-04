@@ -1,5 +1,6 @@
 import axios, { type AxiosResponse } from 'axios';
 import { API_CONFIG } from '../config/api';
+import { isTokenValid } from '../utils/jwt';
 import type {
   ApiResponse,
   ApiResponseWithData,
@@ -35,7 +36,14 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    // Verifica se o token ainda é válido antes de enviá-lo
+    if (isTokenValid(token)) {
+      config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // Token expirado, remove do localStorage e redireciona para login
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
   }
   return config;
 });
@@ -54,9 +62,9 @@ api.interceptors.response.use(
 
 // Serviços de Auth
 export const authService = {
-  login: async (credentials: AuthenticateRequest): Promise<AuthenticateResponse> => {
+  login: async (credentials: AuthenticateRequest): Promise<ApiResponseWithData<AuthenticateResponse>> => {
     const response: AxiosResponse<ApiResponseWithData<AuthenticateResponse>> = await api.post('/auth', credentials);
-    return response.data.data;
+    return response.data;
   },
 
   logout: () => {

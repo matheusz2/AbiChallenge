@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authService } from '../services/api';
+import { decodeUserFromToken, isTokenValid } from '../utils/jwt';
 import type { User, AuthenticateRequest } from '../types/api';
 
 interface AuthContextType {
@@ -31,18 +32,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Se há um token, vamos criar um usuário fictício para manter a sessão
-      // Em uma aplicação real, você faria uma requisição para validar o token
-      setUser({
-        id: 'temp-user',
-        username: 'Usuário Logado',
-        email: 'user@example.com',
-        phone: '',
-        status: 'Active',
-        role: 'Customer',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
+      // Verifica se o token é válido e decodifica as informações do usuário
+      if (isTokenValid(token)) {
+        const decodedUser = decodeUserFromToken(token);
+        if (decodedUser) {
+          setUser(decodedUser);
+        } else {
+          // Token inválido, remove do localStorage
+          localStorage.removeItem('token');
+        }
+      } else {
+        // Token expirado, remove do localStorage
+        localStorage.removeItem('token');
+      }
     }
     setIsLoading(false);
   }, []);
@@ -50,8 +52,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: AuthenticateRequest): Promise<void> => {
     try {
       const response = await authService.login(credentials);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
+
+      const responseData = response as any;
+      let token: string;
+      token = responseData.data.data.token;
+
+      localStorage.setItem('token', token);
+
+      const decodedUser = decodeUserFromToken(token);
+
+      if (decodedUser) {
+        setUser(decodedUser);
+      } else {
+        throw new Error('Token inválido recebido do servidor');
+      }
     } catch (error) {
       throw error;
     }

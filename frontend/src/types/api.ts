@@ -164,7 +164,9 @@ export interface AuthenticateRequest {
 
 export interface AuthenticateResponse {
   token: string;
-  user: User;
+  email: string;
+  name: string;
+  role: string;
 }
 
 // Tipos para paginação

@@ -145,6 +145,12 @@ public class User : BaseEntity, IUser
     string IUser.Username => Username;
 
     /// <summary>
+    /// Gets the email address.
+    /// </summary>
+    /// <returns>The email address.</returns>
+    string IUser.Email => Email;
+
+    /// <summary>
     /// Gets the user's role in the system.
     /// </summary>
     /// <returns>The user's role as a string.</returns>

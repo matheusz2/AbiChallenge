@@ -18,6 +18,12 @@
         public string Username { get; }
 
         /// <summary>
+        /// Obtém o email do usuário.
+        /// </summary>
+        /// <returns>O email do usuário.</returns>
+        public string Email { get; }
+
+        /// <summary>
         /// Obtém o papel/função do usuário no sistema.
         /// </summary>
         /// <returns>O papel do usuário como uma string.</returns>
