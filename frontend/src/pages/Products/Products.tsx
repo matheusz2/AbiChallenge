@@ -32,19 +32,25 @@ const Products: React.FC = () => {
       setError(null);
       
       const response = await productService.getAll({
-        page,
-        pageSize,
-        sortBy: 'title',
-        sortDescending: false
+        _page: page,
+        _size: pageSize,
+        _order: 'title'
       });
 
       console.log('Products response:', response);
       
-      // A resposta de getAll já retorna PaginatedResponse<Product>
-      setProducts(response.data || []);
-      setCurrentPage(response.currentPage || 1);
-      setTotalPages(response.totalPages || 1);
-      setTotalCount(response.totalCount || 0);
+      // Verifica se a resposta é válida e tem a estrutura esperada
+      if (response?.data?.data && Array.isArray(response.data.data)) {
+        setProducts(response.data.data);
+        // Não sobrescrever o currentPage aqui, pois pode estar sendo atualizado pelo usuário
+        // setCurrentPage(response.data.currentPage);
+        setTotalPages(response.data.totalPages);
+        setTotalCount(response.data.totalCount);
+        console.log('Produtos atualizados no estado:', response.data.data.length);
+      } else {
+        console.error('Resposta inválida da API:', response);
+        setError('Erro ao carregar produtos: formato de resposta inválido');
+      }
     } catch (err) {
       console.error('Erro ao buscar produtos:', err);
       setError('Erro ao carregar produtos');
@@ -184,16 +190,6 @@ const Products: React.FC = () => {
             />
           </div>
           
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">Todas as Categorias</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
 
           <div className="flex items-center text-sm text-gray-600">
             <Filter className="h-4 w-4 mr-2" />
@@ -299,6 +295,7 @@ const Products: React.FC = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             totalCount={totalCount}
+            pageSize={pageSize}
             onPageChange={handlePageChange}
           />
         </div>

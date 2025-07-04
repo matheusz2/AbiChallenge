@@ -5,6 +5,7 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   totalCount: number;
+  pageSize: number;
   onPageChange: (page: number) => void;
 }
 
@@ -12,6 +13,7 @@ const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   totalCount,
+  pageSize,
   onPageChange,
 }) => {
   const pages = [];
@@ -54,11 +56,11 @@ const Pagination: React.FC<PaginationProps> = ({
           <p className="text-sm text-gray-700">
             Mostrando{' '}
             <span className="font-medium">
-              {Math.min((currentPage - 1) * 10 + 1, totalCount)}
+              {Math.min((currentPage - 1) * pageSize + 1, totalCount)}
             </span>{' '}
             a{' '}
             <span className="font-medium">
-              {Math.min(currentPage * 10, totalCount)}
+              {Math.min(currentPage * pageSize, totalCount)}
             </span>{' '}
             de{' '}
             <span className="font-medium">{totalCount}</span> resultados

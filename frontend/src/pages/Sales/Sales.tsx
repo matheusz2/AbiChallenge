@@ -28,26 +28,19 @@ const Sales: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
       const response = await saleService.getAll({
-        page,
-        pageSize,
-        sortBy: 'createdAt',
-        sortDescending: true
+        _page: page,
+        _size: pageSize,
+        _order: 'createdAt'
       });
 
-      console.log('Sales response:', response);
-      
-      if (response.data && Array.isArray(response.data)) {
-        setSales(response.data);
-        setCurrentPage(1);
-        setTotalPages(1);
-        setTotalCount(response.data.length);
-      } else if (response.data && typeof response.data === 'object') {
-        setSales(response.data.data || []);
-        setCurrentPage(response.data.currentPage || 1);
-        setTotalPages(response.data.totalPages || 1);
-        setTotalCount(response.data.totalCount || 0);
+      if (response?.data?.data && Array.isArray(response.data.data)) {
+        setSales(response.data.data);
+        setTotalPages(response.data.totalPages);
+        setTotalCount(response.data.totalCount);
+      } else {
+        console.error('Resposta inválida da API:', response);
+        setError('Erro ao carregar vendas: formato de resposta inválido');
       }
     } catch (err) {
       console.error('Erro ao buscar vendas:', err);
@@ -82,7 +75,7 @@ const Sales: React.FC = () => {
   const handleUpdateSale = async (saleData: any) => {
     try {
       setIsSubmitting(true);
-      await saleService.update(saleData.id, saleData);
+      await saleService.update(saleData);
       setShowEditModal(false);
       setSelectedSale(null);
       fetchSales(currentPage);
@@ -296,6 +289,7 @@ const Sales: React.FC = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             totalCount={totalCount}
+            pageSize={pageSize}
             onPageChange={handlePageChange}
           />
         </div>

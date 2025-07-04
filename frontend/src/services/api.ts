@@ -79,9 +79,9 @@ export const authService = {
 
 // Serviços de Users
 export const userService = {
-  getAll: async (params?: PaginationParams): Promise<PaginatedResponse<User>> => {
+  getAll: async (params?: PaginationParams): Promise<ApiResponseWithData<PaginatedResponse<User>>> => {
     const response = await api.get('/users', { params });
-    return response.data.data;
+    return response.data;
   },
 
   getById: async (id: string): Promise<User> => {
@@ -106,9 +106,9 @@ export const userService = {
 
 // Serviços de Products
 export const productService = {
-  getAll: async (params?: PaginationParams): Promise<PaginatedResponse<Product>> => {
+  getAll: async (params?: PaginationParams): Promise<ApiResponseWithData<PaginatedResponse<Product>>> => {
     const response = await api.get('/products', { params });
-    return response.data.data;
+    return response.data;
   },
 
   getById: async (id: string): Promise<Product> => {
@@ -137,15 +137,15 @@ export const productService = {
 
   getByCategory: async (category: string, params?: PaginationParams): Promise<PaginatedResponse<Product>> => {
     const response = await api.get(`/products/category/${category}`, { params });
-    return response.data.data;
+    return response.data;
   },
 };
 
 // Serviços de Sales
 export const saleService = {
-  getAll: async (params?: PaginationParams): Promise<PaginatedResponse<Sale>> => {
+  getAll: async (params?: PaginationParams): Promise<ApiResponseWithData<PaginatedResponse<Sale>>> => {
     const response = await api.get('/sales', { params });
-    return response.data.data;
+    return response.data;
   },
 
   getById: async (id: string): Promise<Sale> => {
@@ -170,9 +170,9 @@ export const saleService = {
 
 // Serviços de Carts
 export const cartService = {
-  getAll: async (params?: PaginationParams): Promise<PaginatedResponse<Cart>> => {
+  getAll: async (params?: PaginationParams): Promise<ApiResponseWithData<PaginatedResponse<Cart>>> => {
     const response = await api.get('/carts', { params });
-    return response.data.data;
+    return response.data;
   },
 
   getById: async (id: string): Promise<Cart> => {

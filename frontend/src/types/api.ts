@@ -19,6 +19,8 @@ export interface PaginatedResponse<T> {
   currentPage: number;
   totalPages: number;
   totalCount: number;
+  success?: boolean;
+  message?: string;
 }
 
 // Resposta de categorias do backend
@@ -230,8 +232,9 @@ export interface AuthenticateResponse {
 
 // Tipos para paginação
 export interface PaginationParams {
-  page?: number;
-  pageSize?: number;
+  _page?: number;
+  _size?: number;
+  _order?: string;
   sortBy?: string;
   sortDescending?: boolean;
 }

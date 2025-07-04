@@ -112,21 +112,20 @@ const Carts: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
       const response = await cartService.getAll({
-        page,
-        pageSize,
-        sortBy: 'date',
-        sortDescending: true
+        _page: page,
+        _size: pageSize,
+        _order: 'createdAt'
       });
 
-      console.log('Carts response:', response);
-      
-      // response já é do tipo PaginatedResponse<Cart>
-      setCarts(response.data || []);
-      setCurrentPage(response.currentPage || 1);
-      setTotalPages(response.totalPages || 1);
-      setTotalCount(response.totalCount || 0);
+      if (response?.data?.data && Array.isArray(response.data.data)) {
+        setCarts(response.data.data);
+        setTotalPages(response.data.totalPages);
+        setTotalCount(response.data.totalCount);
+      } else {
+        console.error('Resposta inválida da API:', response);
+        setError('Erro ao carregar carrinhos: formato de resposta inválido');
+      }
     } catch (err) {
       console.error('Erro ao buscar carrinhos:', err);
       setError('Erro ao carregar carrinhos');
@@ -367,6 +366,7 @@ const Carts: React.FC = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             totalCount={totalCount}
+            pageSize={pageSize}
             onPageChange={handlePageChange}
           />
         </div>

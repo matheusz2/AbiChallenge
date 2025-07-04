@@ -30,27 +30,19 @@ const Users: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
       const response = await userService.getAll({
-        page,
-        pageSize,
-        sortBy: 'createdAt',
-        sortDescending: true
+        _page: page,
+        _size: pageSize,
+        _order: 'username'
       });
 
-      console.log('Users response:', response);
-      
-      if (response.data && Array.isArray(response.data)) {
-        setUsers(response.data);
-        setCurrentPage(1);
-        setTotalPages(1);
-        setTotalCount(response.data.length);
-      } else if (response.data && typeof response.data === 'object' && 'data' in response.data) {
-        const paginatedData = response.data as any; // Forçar tipo para evitar erro de linter
-        setUsers(paginatedData.data || []);
-        setCurrentPage(paginatedData.currentPage || 1);
-        setTotalPages(paginatedData.totalPages || 1);
-        setTotalCount(paginatedData.totalCount || 0);
+      if (response?.data?.data && Array.isArray(response.data.data)) {
+        setUsers(response.data.data);
+        setTotalPages(response.data.totalPages);
+        setTotalCount(response.data.totalCount);
+      } else {
+        console.error('Resposta inválida da API:', response);
+        setError('Erro ao carregar usuários: formato de resposta inválido');
       }
     } catch (err) {
       console.error('Erro ao buscar usuários:', err);
@@ -337,6 +329,7 @@ const Users: React.FC = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             totalCount={totalCount}
+            pageSize={pageSize}
             onPageChange={handlePageChange}
           />
         </div>
