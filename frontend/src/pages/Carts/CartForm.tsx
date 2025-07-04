@@ -23,8 +23,9 @@ const CartForm: React.FC<CartFormProps> = ({ cart, onSubmit, onCancel, isLoading
   const [loadingData, setLoadingData] = useState(true);
 
   // Mapeamento Product.Id (Guid) -> número sequencial para usar no backend
-  const [productIdMapping, setProductIdMapping] = useState<{ [productGuid: string]: number }>({});
-  const [reverseProductMapping, setReverseProductMapping] = useState<{ [productId: number]: string }>({});
+  const [productIdMapping, setProductIdMapping] = useState<{ [guid: string]: number }>({});
+  const [reverseProductMapping, setReverseProductMapping] = useState<{ [num: number]: string }>({});
+  const [duplicateProductError, setDuplicateProductError] = useState<string>('');
 
   useEffect(() => {
     loadInitialData();
@@ -47,14 +48,22 @@ const CartForm: React.FC<CartFormProps> = ({ cart, onSubmit, onCancel, isLoading
     try {
       setLoadingData(true);
       
+      console.log('Carregando dados iniciais...');
+      
       // Buscar produtos e usuários em paralelo
       const [productsResponse, usersResponse] = await Promise.all([
-        productService.getAll({ page: 1, pageSize: 100 }),
-        userService.getAll({ page: 1, pageSize: 100 })
+        productService.getAll({ _page: 1, _size: 100 }),
+        userService.getAll({ _page: 1, _size: 100 })
       ]);
 
-      const products = productsResponse.data || [];
-      const users = usersResponse.data || [];
+      console.log('Products response:', productsResponse);
+      console.log('Users response:', usersResponse);
+
+      const products = productsResponse.data?.data || [];
+      const users = usersResponse.data?.data || [];
+
+      console.log('Products array:', products);
+      console.log('Users array:', users);
 
       // Criar mapeamento entre Product.Id (Guid) e números sequenciais
       const guidToNumberMapping: { [guid: string]: number } = {};
@@ -65,6 +74,8 @@ const CartForm: React.FC<CartFormProps> = ({ cart, onSubmit, onCancel, isLoading
         guidToNumberMapping[product.id] = numericId;
         numberToGuidMapping[numericId] = product.id;
       });
+
+      console.log('Product mappings:', { guidToNumberMapping, numberToGuidMapping });
 
       setAvailableProducts(products);
       setAvailableUsers(users);
@@ -87,6 +98,14 @@ const CartForm: React.FC<CartFormProps> = ({ cart, onSubmit, onCancel, isLoading
     if (formData.products.length === 0) {
       newErrors.products = 'Pelo menos um produto é obrigatório';
     } else {
+      // Verificar produtos duplicados
+      const productIds = formData.products.map(p => p.productId).filter(id => id > 0);
+      const uniqueProductIds = new Set(productIds);
+      
+      if (productIds.length !== uniqueProductIds.size) {
+        newErrors.products = 'Não é permitido adicionar o mesmo produto mais de uma vez';
+      }
+      
       formData.products.forEach((product, index) => {
         if (!product.productId || product.productId <= 0) {
           newErrors[`product_${index}_productId`] = 'Produto é obrigatório';
@@ -148,12 +167,35 @@ const CartForm: React.FC<CartFormProps> = ({ cart, onSubmit, onCancel, isLoading
   };
 
   const updateProduct = (index: number, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      products: prev.products.map((product, i) => 
+    setFormData(prev => {
+      const newProducts = prev.products.map((product, i) => 
         i === index ? { ...product, [field]: value } : product
-      )
-    }));
+      );
+
+      // Verificar se há produtos duplicados
+      const productIds = newProducts.map(p => p.productId).filter(id => id > 0);
+      const uniqueProductIds = new Set(productIds);
+      
+      if (productIds.length !== uniqueProductIds.size) {
+        // Há produtos duplicados, não permitir a atualização
+        const duplicateProduct = getProductInfo(value);
+        const errorMessage = `Produto "${duplicateProduct?.title || 'Desconhecido'}" já foi adicionado ao carrinho. Não é permitido adicionar o mesmo produto mais de uma vez.`;
+        setDuplicateProductError(errorMessage);
+        
+        // Limpar o erro após 3 segundos
+        setTimeout(() => setDuplicateProductError(''), 3000);
+        
+        return prev;
+      }
+
+      // Limpar erro se não há duplicados
+      setDuplicateProductError('');
+      
+      return {
+        ...prev,
+        products: newProducts
+      };
+    });
   };
 
   const getProductInfo = (productId: number) => {
@@ -165,6 +207,19 @@ const CartForm: React.FC<CartFormProps> = ({ cart, onSubmit, onCancel, isLoading
   const getProductName = (productId: number) => {
     const product = getProductInfo(productId);
     return product ? `${product.title} - $${product.price}` : 'Produto não encontrado';
+  };
+
+  const getAvailableProductsForIndex = (currentIndex: number) => {
+    // Retorna apenas produtos que não estão selecionados em outras linhas
+    const selectedProductIds = formData.products
+      .map((p, index) => ({ productId: p.productId, index }))
+      .filter(p => p.productId > 0 && p.index !== currentIndex)
+      .map(p => p.productId);
+
+    return availableProducts.filter(product => {
+      const numericId = productIdMapping[product.id];
+      return !selectedProductIds.includes(numericId);
+    });
   };
 
   const getUserName = (userId: number) => {
@@ -258,6 +313,13 @@ const CartForm: React.FC<CartFormProps> = ({ cart, onSubmit, onCancel, isLoading
             </button>
           </div>
 
+          {/* Erro de produto duplicado */}
+          {duplicateProductError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm">{duplicateProductError}</p>
+            </div>
+          )}
+
           <div className="space-y-4">
             {formData.products.map((product, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -287,14 +349,19 @@ const CartForm: React.FC<CartFormProps> = ({ cart, onSubmit, onCancel, isLoading
                       }`}
                     >
                       <option value="">Selecione um produto</option>
-                      {availableProducts.map((prod) => {
+                      {getAvailableProductsForIndex(index).map((prod) => {
                         const mappedId = productIdMapping[prod.id];
                         return (
                           <option key={prod.id} value={mappedId}>
-                            {prod.title} - ${prod.price} ({prod.category})
+                            {prod.title} - ${prod.price}
                           </option>
                         );
                       })}
+                      {product.productId > 0 && (
+                        <option value={product.productId} disabled>
+                          {getProductName(product.productId)} (selecionado)
+                        </option>
+                      )}
                     </select>
                     {errors[`product_${index}_productId`] && (
                       <p className="text-red-500 text-xs mt-1">{errors[`product_${index}_productId`]}</p>

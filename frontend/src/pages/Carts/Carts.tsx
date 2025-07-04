@@ -14,11 +14,22 @@ const ProductRow: React.FC<{ product: CartProduct }> = ({ product }) => {
   useEffect(() => {
     const loadProductInfo = async () => {
       try {
-        const response = await productService.getAll({ page: 1, pageSize: 100 });
-        const products = response.data || [];
+        // Tentar buscar o produto específico primeiro
+        const productGuid = `550e8400-e29b-41d4-a716-44665544000${product.productId.toString().padStart(2, '0')}`;
+        console.log('Buscando produto com GUID:', productGuid);
         
-        const productFound = products.find((p, index) => (index + 1) === product.productId);
-        setProductInfo(productFound || null);
+        try {
+          const productInfo = await productService.getById(productGuid);
+          setProductInfo(productInfo);
+        } catch (error) {
+          console.log('Produto não encontrado por GUID, buscando por índice...');
+          // Fallback: buscar todos os produtos e encontrar por índice
+          const response = await productService.getAll({ _page: 1, _size: 100 });
+          const products = response.data?.data || [];
+          
+          const productFound = products.find((p, index) => (index + 1) === product.productId);
+          setProductInfo(productFound || null);
+        }
       } catch (error) {
         console.error('Erro ao carregar informações do produto:', error);
         setProductInfo(null);
