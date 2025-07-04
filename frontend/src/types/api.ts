@@ -27,8 +27,22 @@ export interface User {
   username: string;
   email: string;
   phone: string;
-  status: 'Active' | 'Inactive' | 'Suspended';
-  role: 'Admin' | 'Customer' | 'Manager';
+  status: string; // Backend retorna como string (ex: "Active", "Inactive", "Suspended")
+  role: string;   // Backend retorna como string (ex: "Customer", "Manager", "Admin")
+  name: {
+    firstname: string;
+    lastname: string;
+  };
+  address: {
+    city: string;
+    street: string;
+    number: number;
+    zipcode: string;
+    geolocation: {
+      lat: string;
+      long: string;
+    };
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -52,17 +66,32 @@ export interface CreateUserRequest {
     };
   };
   phone: string;
-  status: number;
-  role: number;
+  status: number; // 0=Unknown, 1=Active, 2=Inactive, 3=Suspended
+  role: number;   // 0=None, 1=Customer, 2=Manager, 3=Admin
 }
 
 export interface UpdateUserRequest {
   id: string;
-  username: string;
   email: string;
+  username: string;
+  password?: string; // Opcional na atualização
+  name: {
+    firstname: string;
+    lastname: string;
+  };
+  address: {
+    city: string;
+    street: string;
+    number: number;
+    zipcode: string;
+    geolocation: {
+      lat: string;
+      long: string;
+    };
+  };
   phone: string;
-  status: 1;
-  role: 1;
+  status: number; // 0=Unknown, 1=Active, 2=Inactive, 3=Suspended
+  role: number;   // 0=None, 1=Customer, 2=Manager, 3=Admin
 }
 
 // Tipos para Product
@@ -140,25 +169,25 @@ export interface UpdateSaleRequest {
 }
 
 // Tipos para Cart
-export interface CartItem {
-  id: string;
-  productId: number;
+export interface CartProduct {
+  productId: number; // Backend usa int, apesar de Product.Id ser Guid
   quantity: number;
-  unitPrice?: number;
 }
 
 export interface Cart {
   id: string;
   userId: number;
   date: string;
-  products: CartItem[];
-  items?: CartItem[];
+  products: CartProduct[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateCartRequest {
   userId: number;
-  items: {
-    productId: number;
+  date: string;
+  products: {
+    productId: number; // Backend usa int, apesar de Product.Id ser Guid
     quantity: number;
   }[];
 }
@@ -166,8 +195,9 @@ export interface CreateCartRequest {
 export interface UpdateCartRequest {
   id: string;
   userId: number;
-  items: {
-    productId: number;
+  date: string;
+  products: {
+    productId: number; // Backend usa int, apesar de Product.Id ser Guid
     quantity: number;
   }[];
 }
