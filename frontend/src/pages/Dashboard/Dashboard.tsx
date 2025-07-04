@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Package, Receipt, ShoppingCart, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { Users, Package, Receipt, ShoppingCart, TrendingUp, TrendingDown, RefreshCw, UserPlus, DollarSign, ShoppingBag } from 'lucide-react';
 import { dashboardService } from '../../services/api';
 import type { DashboardStats } from '../../types/api';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -12,6 +13,7 @@ const Dashboard: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const fetchDashboardStats = async () => {
     try {
@@ -30,6 +32,22 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     fetchDashboardStats();
   }, []);
+
+  const handleCreateUser = () => {
+    navigate('/users');
+  };
+
+  const handleAddProduct = () => {
+    navigate('/products');
+  };
+
+  const handleNewSale = () => {
+    navigate('/sales');
+  };
+
+  const handleManageCarts = () => {
+    navigate('/carts');
+  };
 
   // Dados dos cards com valores reais
   const statsCards = [
@@ -220,19 +238,31 @@ const Dashboard: React.FC = () => {
             </h3>
             <div className="mt-5">
               <div className="space-y-3">
-                <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md flex items-center justify-center">
+                <button 
+                  onClick={handleCreateUser}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md flex items-center justify-center"
+                >
                   <Users className="w-4 h-4 mr-2" />
-                  Criar Novo Usuário
+                  Gerenciar Usuários
                 </button>
-                <button className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center">
+                <button 
+                  onClick={handleAddProduct}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center"
+                >
                   <Package className="w-4 h-4 mr-2" />
-                  Adicionar Produto
+                  Gerenciar Produtos
                 </button>
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center">
+                <button 
+                  onClick={handleNewSale}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center"
+                >
                   <Receipt className="w-4 h-4 mr-2" />
-                  Nova Venda
+                  Gerenciar Vendas
                 </button>
-                <button className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center justify-center">
+                <button 
+                  onClick={handleManageCarts}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center justify-center"
+                >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Gerenciar Carrinhos
                 </button>
